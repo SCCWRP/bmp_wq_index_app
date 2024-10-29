@@ -4,7 +4,7 @@ library(ggplot2)
 
 # UI
 ui <- fluidPage(
-  titlePanel("Effluent/Influent Threshold Plot"),
+  titlePanel("BMP Water Quality Performance Index Plot"),
   
   sidebarLayout(
     sidebarPanel(
@@ -59,10 +59,16 @@ server <- function(input, output, session) {
         x = "Influent / Threshold",
         y = "Effluent / Threshold",
         colour = "Performance",
-        title = "Effluent Influent Threshold Plot"
+        title = "BMP Water Quality Performance Index Plot"
       ) +
       theme_minimal(base_size = 16) + # Larger font sizes
-      scale_color_manual(values = c("green", "yellow", "orange", "purple", "red")) +
+      scale_color_manual(values = c(
+        "Success" = "#117733",
+        "Excess" = "#0072B2",
+        "Marginal" = "#F0E442",
+        "Insufficient" = "#E69F00",
+        "Failure" = "#661100"
+      )) +
       geom_hline(yintercept = 1, linetype = "dashed") +
       geom_vline(xintercept = 1, linetype = "dashed") +
       geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
