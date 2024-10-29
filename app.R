@@ -61,11 +61,12 @@ server <- function(input, output, session) {
         colour = "Performance",
         title = "Effluent Influent Threshold Plot"
       ) +
-      theme_minimal() +
+      theme_minimal(base_size = 16) + # Larger font sizes
       scale_color_manual(values = c("green", "yellow", "orange", "purple", "red")) +
       geom_hline(yintercept = 1, linetype = "dashed") +
       geom_vline(xintercept = 1, linetype = "dashed") +
-      geom_abline(slope = 1, intercept = 0, linetype = "dashed")
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+      coord_fixed() # Ensure square plot
   })
 }
 
