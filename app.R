@@ -1,6 +1,7 @@
 library(shiny)
 library(dplyr)
 library(ggplot2)
+library(DT)
 
 # UI
 ui <- fluidPage(
@@ -13,7 +14,9 @@ ui <- fluidPage(
       actionButton("update", "Update Plot")
     ),
     mainPanel(
-      plotOutput("effinf_plot")
+      plotOutput("effinf_plot"),
+      plotly::plotlyOutput("score.gauge"),
+      DT::dataTableOutput("gauge.table")
     )
   )
 )
@@ -73,6 +76,34 @@ server <- function(input, output, session) {
       geom_vline(xintercept = 1, linetype = "dashed") +
       geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
       coord_fixed() # Ensure square plot
+  })
+  
+  # gauge output
+  output$score.gauge <- plotly::renderPlotly({
+    req(processed_data())
+    df <- processed_data()
+    print(df)
+    scr <- get.composite.score(df, performance_col = 'quadrant2')
+    print('score')
+    print(scr)
+    get.composite.gauge(scr)
+  })
+  
+  output$gauge.table <- DT::renderDataTable({
+    summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2') #%>%
+      # datatable(
+      #   rownames = FALSE, 
+      #   selection = 'none',
+      #   options = list(
+      #     dom = 'ft', 
+      #     scrollX = TRUE, 
+      #     ordering = FALSE, 
+      #     searching = FALSE, 
+      #     lengthChange = FALSE,
+      #     columnDefs = list(list(className = "dt-right", targets = 4:8))
+      #   ),
+      #   escape = F
+      # )
   })
 }
 
