@@ -42,14 +42,14 @@ get.composite.gauge <- function(composite_score) {
       ),
       valueformat = ".2f"
     ),
-    title = list(
-      text = title_text, 
-      font = list(
-        size = 23,
-        color = "#202020",
-        family = "Arial"
-      )
-    ),
+    # title = list(
+    #   text = title_text, 
+    #   font = list(
+    #     size = 23,
+    #     color = "#202020",
+    #     family = "Arial"
+    #   )
+    # ),
     gauge = list(
       borderwidth = 0,
       axis = list(

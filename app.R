@@ -5,18 +5,71 @@ library(DT)
 
 # UI
 ui <- fluidPage(
-  titlePanel("BMP Water Quality Performance Index Plot"),
+  titlePanel("BMP Water Quality Performance Index"),
   
   sidebarLayout(
     sidebarPanel(
+      h4("Instructions"),
+      tags$ol(
+        tags$li("Download csv template."),
+        tags$li("Populate template with BMP monitoring data.",
+                tags$ul(
+                  tags$li("Data must be event mean concentrations (EMCs) from paired influent-effluent sampling."),
+                  tags$li("Only one pollutant may be assessed at a time.")
+                )
+        ),
+        tags$li("Upload data template to app."),
+        tags$li("Identify a relevant threshold for the pollutant of interest.",
+                tags$ul(
+                  tags$li("Units must be consistent with the data template.")
+                )
+        ),
+        tags$li("Click 'Calculate Index' to generate the Performance Index Plot, Score, and Summary Table."),
+        tags$li("Optional:",
+                tags$ul(
+                  tags$li("Download Performance Index Plot, Score, and Summary Table."),
+                  tags$li("Adjust threshold to see how Performance Index changes."),
+                  tags$li("Upload new data to see how Performance Index varies across pollutant class and BMP types.")
+                )
+        )
+      ),
+      
       fileInput("file", "Upload CSV File", accept = c(".csv")),
       numericInput("threshold", "Threshold", value = 1, min = 0),
-      actionButton("update", "Update Plot")
+      actionButton("update", "Calculate Index"),
+      downloadButton("downloadData", "Download CSV Template"),
+      # Display the image
+      tags$img(src = "intepretation-slide.png", height = "300px", width = "100%")
     ),
+    
+    # Separate elements using fluidRow and column for better visibility
     mainPanel(
-      plotOutput("effinf_plot"),
-      plotly::plotlyOutput("score.gauge"),
-      DT::dataTableOutput("gauge.table")
+      # First row: Plot
+      fluidRow(
+        column(12,
+               h4("Performance Index Plot"),
+               align = "center",
+               plotOutput("effinf_plot")
+        )
+      ),
+      
+      # Second row: Gauge
+      fluidRow(
+        column(12,
+               h4("Performance Index Score"),
+               align = "center", 
+               plotly::plotlyOutput("score.gauge", width="700px", height = "300px")
+        )
+      ),
+      
+      # Third row: Table
+      fluidRow(
+        column(12,
+               align = "center",
+               h4("Performance Index Summary Table"),
+               DT::dataTableOutput("gauge.table")
+        )
+      )
     )
   )
 )
@@ -61,8 +114,8 @@ server <- function(input, output, session) {
       labs(
         x = "Influent / Threshold",
         y = "Effluent / Threshold",
-        colour = "Performance",
-        title = "BMP Water Quality Performance Index Plot"
+        colour = "Performance"
+        #title = "BMP Water Quality Performance Index Plot"
       ) +
       theme_minimal(base_size = 16) + # Larger font sizes
       scale_color_manual(values = c(
@@ -90,21 +143,34 @@ server <- function(input, output, session) {
   })
   
   output$gauge.table <- DT::renderDataTable({
-    summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2') #%>%
-      # datatable(
-      #   rownames = FALSE, 
-      #   selection = 'none',
-      #   options = list(
-      #     dom = 'ft', 
-      #     scrollX = TRUE, 
-      #     ordering = FALSE, 
-      #     searching = FALSE, 
-      #     lengthChange = FALSE,
-      #     columnDefs = list(list(className = "dt-right", targets = 4:8))
-      #   ),
-      #   escape = F
-      # )
+    summary_dat <- summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2') 
+    print(colnames(summary_dat))
+    summary_dat <- summary_dat %>%
+      dplyr::rename(       # Replace with actual column name in summary.table output
+        Index = `Performance.Index`,    # Replace with actual column name
+        `# Success` = `X..Success`
+      ) %>%
+      datatable(
+        rowname = FALSE,
+        options = list(
+          dom = 't',        # This hides the search box, the show entries dropdown, and other controls
+          paging = FALSE,    # Disable pagination (optional, based on your needs),
+          ordering = FALSE
+        )
+      )
+  
+    
   })
+  
+  # Download static sample data
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      "sample_influent_effluent.csv"
+    },
+    content = function(file) {
+      file.copy("demo/sample_influent_effluent.csv", file)
+    }
+  )
 }
 
 # Run the application
