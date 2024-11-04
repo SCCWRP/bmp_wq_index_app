@@ -16,8 +16,6 @@ get.composite.score <- function(df, performance_col = 'Performance') {
     )
   
   
-  print('score df')
-  print(tmp)
   # Dot product of the category scores with their respective proportions of the data
   signif(tmp$category_score %*% tmp$proportion, 3)
 }
@@ -29,7 +27,7 @@ get.composite.score <- function(df, performance_col = 'Performance') {
 get.composite.gauge <- function(composite_score) {
 
   
-  title_text <- glue::glue("Performance Index")
+  title_text <- glue::glue("Performance Index Score")
   top_offset <- 28
   plotly::plot_ly(
     height = 300,
@@ -43,7 +41,7 @@ get.composite.gauge <- function(composite_score) {
       valueformat = ".2f"
     ),
     # title = list(
-    #   text = title_text, 
+    #   text = title_text,
     #   font = list(
     #     size = 23,
     #     color = "#202020",
@@ -84,7 +82,20 @@ summary.table <- function(df, threshold, performance_col = 'Performance') {
   perf.index <- get.composite.score(df, performance_col = performance_col)
   
   n.success <- df %>% filter(!!sym(performance_col) == 'Success') %>% nrow()
+  n.excess <- df %>% filter(!!sym(performance_col) == 'Excess') %>% nrow()
+  n.marginal <- df %>% filter(!!sym(performance_col) == 'Marginal') %>% nrow()
+  n.insufficient <- df %>% filter(!!sym(performance_col) == 'Insufficient') %>% nrow()
+  n.failure <- df %>% filter(!!sym(performance_col) == 'Failure') %>% nrow()
   
-  data.frame(Threshold = threshold, `Performance Index` = perf.index, `# Success` = paste0(n.success, '(', round(n.success/nrow(df), 1), '%)') )
+  
+  data.frame(
+    Threshold = threshold, 
+    `Performance Index` = perf.index, 
+    num_success = paste0(n.success, ' (', round(n.success/nrow(df), 1), '%)'),
+    num_excess = paste0(n.excess, ' (', round(n.excess/nrow(df), 1), '%)'),
+    num_marginal = paste0(n.marginal, ' (', round(n.marginal/nrow(df), 1), '%)'),
+    num_insufficient = paste0(n.insufficient, ' (', round(n.insufficient/nrow(df), 1), '%)'),
+    num_failure = paste0(n.failure, ' (', round(n.failure/nrow(df), 1), '%)')
+  )
   
 }

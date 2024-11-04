@@ -36,20 +36,26 @@ ui <- fluidPage(
       fileInput("file", "Upload CSV File", accept = c(".csv")),
       numericInput("threshold", "Threshold", value = 1, min = 0),
      
-      tags$img(src = "intepretation-slide.png", height = "300px", width = "100%")
+      tags$img(src = "intepretation-slide.png", height = "100%", width = "100%")
     ),
     
     mainPanel(
       fluidRow(
         column(12,
-               h4("Performance Index Plot"),
+               conditionalPanel(
+                 condition = "output.dataUploaded == true",  # This condition will check if the data is uploaded
+                 h4("Performance Index Plot")
+               ),
                shinycssloaders::withSpinner(plotOutput("effinf_plot"))
         )
       ),
       
       fluidRow(
         column(12,
-               h4("Performance Index Score"),
+               conditionalPanel(
+                 condition = "output.dataUploaded == true",
+                 h4("Performance Index Score")
+               ),
                div(
                  style = "display: flex; justify-content: center;",  # Center the gauge output
                  shinycssloaders::withSpinner(plotly::plotlyOutput("score.gauge", width = "700px", height = "300px"))
@@ -59,11 +65,15 @@ ui <- fluidPage(
       
       fluidRow(
         column(12,
-               h4("Performance Index Summary Table"),
+               conditionalPanel(
+                 condition = "output.dataUploaded == true",
+                 h4("Performance Index Summary Table")
+               ),
                shinycssloaders::withSpinner(DT::dataTableOutput("gauge.table"))
         )
       )
     )
+    
   )
 )
 
@@ -72,6 +82,12 @@ server <- function(input, output, session) {
   
   # Define required columns
   required_columns <- c("influent", "effluent")
+  
+  output$dataUploaded <- reactive({
+    !is.null(input$file$datapath)
+  })
+  
+  outputOptions(output, "dataUploaded", suspendWhenHidden = FALSE)
   
   # Reactive to load and process the data when file is uploaded or threshold is updated
   processed_data <- reactive({
@@ -141,6 +157,8 @@ server <- function(input, output, session) {
         x = "Influent / Threshold",
         y = "Effluent / Threshold",
         colour = "Performance"
+        # ,
+        # title = "Performance Index Plot"
       ) +
       theme_minimal(base_size = 16) +
       scale_color_manual(values = c(
@@ -165,19 +183,36 @@ server <- function(input, output, session) {
   })
   
   output$gauge.table <- DT::renderDataTable({
-    summary_dat <- summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2') 
+    summary_dat <- summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2')
     summary_dat <- summary_dat %>%
       dplyr::rename(
         Index = `Performance.Index`,  
-        `# Success` = `X..Success`
-      ) %>%
-      datatable(
-        rowname = FALSE,
-        options = list(
-          dom = 't',       
-          paging = FALSE,    
-          ordering = FALSE
-        )
+        `# Success` = num_success,
+        `# Excess` = num_excess,
+        `# Marginal` = num_marginal,
+        `# Insufficient` = num_insufficient,
+        `# Failure` = num_failure
+      )
+    
+    # Render the datatable with centered text alignment
+    datatable(
+      summary_dat,
+      rownames = FALSE, 
+      selection = 'none',
+      options = list(
+        dom = 'ft', 
+        scrollX = TRUE, 
+        ordering = FALSE, 
+        searching = FALSE, 
+        lengthChange = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all"))  # Center all columns
+      ),
+      escape = F
+    ) %>%
+      DT::formatStyle(
+        columns = colnames(summary_dat),    # Apply to all columns
+        textAlign = 'center',               # Center-align text
+        fontWeight = 'normal'               # Optional: make sure font weight is consistent
       )
   })
   
