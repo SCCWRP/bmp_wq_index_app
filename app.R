@@ -9,65 +9,58 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      h4("Instructions"),
+      h4("Instructions for Use:"),
       tags$ol(
         tags$li("Download csv template."),
         tags$li("Populate template with BMP monitoring data.",
-                tags$ul(
-                  tags$li("Data must be event mean concentrations (EMCs) from paired influent-effluent sampling."),
-                  tags$li("Only one pollutant may be assessed at a time.")
+                tags$ol(type = "a",  # Sub-list using letters
+                        tags$li("Data must be event mean concentrations (EMCs) from paired influent-effluent sampling."),
+                        tags$li("Only one pollutant may be assessed at a time.")
                 )
         ),
-        tags$li("Upload data template to app."),
+        tags$li("Upload data template to generate the Performance Index Plot, Score, and Summary Table."),
         tags$li("Identify a relevant threshold for the pollutant of interest.",
-                tags$ul(
-                  tags$li("Units must be consistent with the data template.")
+                tags$ol(type = "a",  # Sub-list using letters
+                        tags$li("Units must be consistent with the data template.")
                 )
         ),
-        tags$li("Click 'Calculate Index' to generate the Performance Index Plot, Score, and Summary Table."),
         tags$li("Optional:",
-                tags$ul(
-                  tags$li("Download Performance Index Plot, Score, and Summary Table."),
-                  tags$li("Adjust threshold to see how Performance Index changes."),
-                  tags$li("Upload new data to see how Performance Index varies across pollutant class and BMP types.")
+                tags$ol(type = "a",  # Sub-list using letters
+                        tags$li("Download Performance Index Plot, Score, and Summary Table."),
+                        tags$li("Adjust threshold to see how Performance Index changes."),
+                        tags$li("Upload new data to see how Performance Index varies across pollutant class and BMP types.")
                 )
         )
       ),
-      
+      downloadButton("downloadData", "Download CSV Template"),
       fileInput("file", "Upload CSV File", accept = c(".csv")),
       numericInput("threshold", "Threshold", value = 1, min = 0),
-      actionButton("update", "Calculate Index"),
-      downloadButton("downloadData", "Download CSV Template"),
-      # Display the image
+     
       tags$img(src = "intepretation-slide.png", height = "300px", width = "100%")
     ),
     
-    # Separate elements using fluidRow and column for better visibility
     mainPanel(
-      # First row: Plot
       fluidRow(
         column(12,
                h4("Performance Index Plot"),
-               align = "center",
-               plotOutput("effinf_plot")
+               shinycssloaders::withSpinner(plotOutput("effinf_plot"))
         )
       ),
       
-      # Second row: Gauge
       fluidRow(
         column(12,
                h4("Performance Index Score"),
-               align = "center", 
-               plotly::plotlyOutput("score.gauge", width="700px", height = "300px")
+               div(
+                 style = "display: flex; justify-content: center;",  # Center the gauge output
+                 shinycssloaders::withSpinner(plotly::plotlyOutput("score.gauge", width = "700px", height = "300px"))
+               )
         )
       ),
       
-      # Third row: Table
       fluidRow(
         column(12,
-               align = "center",
                h4("Performance Index Summary Table"),
-               DT::dataTableOutput("gauge.table")
+               shinycssloaders::withSpinner(DT::dataTableOutput("gauge.table"))
         )
       )
     )
@@ -76,13 +69,46 @@ ui <- fluidPage(
 
 # Server
 server <- function(input, output, session) {
+  
+  # Define required columns
+  required_columns <- c("influent", "effluent")
+  
   # Reactive to load and process the data when file is uploaded or threshold is updated
-  processed_data <- eventReactive(input$update, {
+  processed_data <- reactive({
     req(input$file)
     req(input$threshold > 0)
     
     # Load the CSV data
-    df <- read.csv(input$file$datapath)
+    df <- tryCatch(
+      {
+        read.csv(input$file$datapath)
+      },
+      error = function(e) {
+        NULL  # Return NULL if there's an error reading the file
+      }
+    )
+    
+    # Validate if the file was read successfully (not NULL) and is not empty
+    validate(
+      need(!is.null(df), "The uploaded file is either empty or invalid. Please upload a valid CSV file."),
+      need(nrow(df) > 0, "The uploaded file is either empty or invalid. Please upload a valid CSV file.")
+    )
+    
+    # Use Shiny's validate() and need() to check if required columns are present
+    validate(
+      need(all(required_columns %in% colnames(df)),
+           paste("The following required columns are missing:", 
+                 paste(setdiff(required_columns, colnames(df)), collapse = ", "))
+      )
+    )
+    
+    validate(
+      need(all(!is.na(df$influent) & !is.null(df$influent)), "'influent' column contains NA or NULL values. Please provide valid data."),
+      need(all(!is.na(df$effluent) & !is.null(df$effluent)), "'effluent' column contains NA or NULL values. Please provide valid data."),
+      need(is.numeric(df$influent), "'influent' column contains non-numeric values. Please ensure all values are numeric."),
+      need(is.numeric(df$effluent), "'effluent' column contains non-numeric values. Please ensure all values are numeric.")
+    )
+    
     
     # Calculate inf/thresh and eff/thresh
     df <- df %>%
@@ -115,9 +141,8 @@ server <- function(input, output, session) {
         x = "Influent / Threshold",
         y = "Effluent / Threshold",
         colour = "Performance"
-        #title = "BMP Water Quality Performance Index Plot"
       ) +
-      theme_minimal(base_size = 16) + # Larger font sizes
+      theme_minimal(base_size = 16) +
       scale_color_manual(values = c(
         "Success" = "#117733",
         "Excess" = "#0072B2",
@@ -131,35 +156,29 @@ server <- function(input, output, session) {
       coord_fixed() # Ensure square plot
   })
   
-  # gauge output
+  # Gauge output
   output$score.gauge <- plotly::renderPlotly({
     req(processed_data())
     df <- processed_data()
-    print(df)
     scr <- get.composite.score(df, performance_col = 'quadrant2')
-    print('score')
-    print(scr)
     get.composite.gauge(scr)
   })
   
   output$gauge.table <- DT::renderDataTable({
     summary_dat <- summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2') 
-    print(colnames(summary_dat))
     summary_dat <- summary_dat %>%
-      dplyr::rename(       # Replace with actual column name in summary.table output
-        Index = `Performance.Index`,    # Replace with actual column name
+      dplyr::rename(
+        Index = `Performance.Index`,  
         `# Success` = `X..Success`
       ) %>%
       datatable(
         rowname = FALSE,
         options = list(
-          dom = 't',        # This hides the search box, the show entries dropdown, and other controls
-          paging = FALSE,    # Disable pagination (optional, based on your needs),
+          dom = 't',       
+          paging = FALSE,    
           ordering = FALSE
         )
       )
-  
-    
   })
   
   # Download static sample data
@@ -175,3 +194,4 @@ server <- function(input, output, session) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
