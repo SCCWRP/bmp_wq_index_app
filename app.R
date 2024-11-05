@@ -4,9 +4,10 @@ library(ggplot2)
 library(DT)
 
 # UI
+# UI
 ui <- fluidPage(
   titlePanel("BMP Water Quality Performance Index"),
-  
+  #useBusyIndicators(),
   sidebarLayout(
     sidebarPanel(
       h4("Instructions for Use:"),
@@ -15,7 +16,8 @@ ui <- fluidPage(
         tags$li("Populate template with BMP monitoring data.",
                 tags$ol(type = "a",  # Sub-list using letters
                         tags$li("Data must be event mean concentrations (EMCs) from paired influent-effluent sampling."),
-                        tags$li("Only one pollutant may be assessed at a time.")
+                        tags$li("All EMC data must be from same pollutant with same unit (e.g., TSS in mg/L)."),
+                        tags$li("Data limit is 5Mb.")
                 )
         ),
         tags$li("Upload data template to generate the Performance Index Plot, Score, and Summary Table."),
@@ -24,6 +26,14 @@ ui <- fluidPage(
                         tags$li("Units must be consistent with the data template.")
                 )
         ),
+        tags$li("Interpret BMP Performance from Index Score - is the BMP working according to expectations?:",
+                tags$ol(type = "a",  # Sub-list using letters
+                        tags$li("Recommended data queries"),
+                        tags$li("uggested remedial actions")
+                )
+        ),
+        
+        
         tags$li("Optional:",
                 tags$ol(type = "a",  # Sub-list using letters
                         tags$li("Download Performance Index Plot, Score, and Summary Table."),
@@ -35,18 +45,19 @@ ui <- fluidPage(
       downloadButton("downloadData", "Download CSV Template"),
       fileInput("file", "Upload CSV File", accept = c(".csv")),
       numericInput("threshold", "Threshold", value = 1, min = 0),
-     
+      
       tags$img(src = "intepretation-slide.png", height = "100%", width = "100%")
-    ),
+      , width = 6),  # Set sidebarPanel width to 6
     
     mainPanel(
       fluidRow(
         column(12,
                conditionalPanel(
                  condition = "output.dataUploaded == true",  # This condition will check if the data is uploaded
-                 h4("Performance Index Plot")
+                 h4("Performance Index Plot"),
+                 downloadButton("downloadPlot", "Download Plot")
                ),
-               shinycssloaders::withSpinner(plotOutput("effinf_plot"))
+               uiOutput("effinf_output")
         )
       ),
       
@@ -54,11 +65,12 @@ ui <- fluidPage(
         column(12,
                conditionalPanel(
                  condition = "output.dataUploaded == true",
-                 h4("Performance Index Score")
+                 h4("Performance Index Score"),
+                 downloadButton("downloadGauge", "Download Gauge")
                ),
                div(
                  style = "display: flex; justify-content: center;",  # Center the gauge output
-                 shinycssloaders::withSpinner(plotly::plotlyOutput("score.gauge", width = "700px", height = "300px"))
+                 plotly::plotlyOutput("score.gauge", width = "700px", height = "300px")
                )
         )
       ),
@@ -67,15 +79,17 @@ ui <- fluidPage(
         column(12,
                conditionalPanel(
                  condition = "output.dataUploaded == true",
-                 h4("Performance Index Summary Table")
+                 h4("Performance Index Summary Table"),
+                 downloadButton("downloadTable", "Download Summary Table")
                ),
-               shinycssloaders::withSpinner(DT::dataTableOutput("gauge.table"))
+               DT::dataTableOutput("gauge.table")
         )
       )
-    )
+      , width = 6)  # Set mainPanel width to 6
     
   )
 )
+
 
 # Server
 server <- function(input, output, session) {
@@ -146,8 +160,18 @@ server <- function(input, output, session) {
     return(df)
   })
   
+  output$effinf_output <- renderUI({
+    if (is.null(input$file$datapath)) {
+      tags$img(src = "placeholder-eff-plot.png", height = "70%", width = "70%")
+    } else {
+      plotOutput("effinf_plot")
+    }
+  })
+  
   # Plot output
-  output$effinf_plot <- renderPlot({
+  
+  
+  effinf_plot <- reactive({
     req(processed_data())
     df <- processed_data()
     
@@ -157,8 +181,6 @@ server <- function(input, output, session) {
         x = "Influent / Threshold",
         y = "Effluent / Threshold",
         colour = "Performance"
-        # ,
-        # title = "Performance Index Plot"
       ) +
       theme_minimal(base_size = 16) +
       scale_color_manual(values = c(
@@ -169,20 +191,38 @@ server <- function(input, output, session) {
         "Failure" = "#661100"
       )) +
       geom_hline(yintercept = 1, linetype = "dashed") +
-      geom_vline(xintercept = 1, linetype = "dashed") +
+      annotate("segment", x = 1, xend = 1, y = min(df$`eff/thresh`), yend = 1, linetype = "dashed", color = "black") +  # Use annotate for the vertical line
       geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-      coord_fixed() # Ensure square plot
+      coord_fixed() +
+      # Explicitly set the background color to white
+      theme(
+        plot.background = element_rect(fill = "white", color = NA),
+        panel.background = element_rect(fill = "white", color = NA)
+      )
+  })
+  
+  output$effinf_plot <- renderPlot({
+    
+    effinf_plot()
+
   })
   
   # Gauge output
-  output$score.gauge <- plotly::renderPlotly({
+  # Reactive expression for the gauge plot
+  gauge_plot <- reactive({
     req(processed_data())
     df <- processed_data()
     scr <- get.composite.score(df, performance_col = 'quadrant2')
-    get.composite.gauge(scr)
+    get.composite.gauge(scr)  # Return the gauge plotly object
+  })
+  output$score.gauge <- plotly::renderPlotly({
+    p <- gauge_plot()  # Use the reactive gauge plot
+    # export(p, file = "test.png")
+    # p
   })
   
-  output$gauge.table <- DT::renderDataTable({
+  
+  summary_dat <- reactive({
     summary_dat <- summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2')
     summary_dat <- summary_dat %>%
       dplyr::rename(
@@ -193,10 +233,15 @@ server <- function(input, output, session) {
         `# Insufficient` = num_insufficient,
         `# Failure` = num_failure
       )
+    summary_dat
+    
+  })
+  output$gauge.table <- DT::renderDataTable({
+    dat <- summary_dat()
     
     # Render the datatable with centered text alignment
     datatable(
-      summary_dat,
+      dat,
       rownames = FALSE, 
       selection = 'none',
       options = list(
@@ -210,7 +255,7 @@ server <- function(input, output, session) {
       escape = F
     ) %>%
       DT::formatStyle(
-        columns = colnames(summary_dat),    # Apply to all columns
+        columns = colnames(dat),    # Apply to all columns
         textAlign = 'center',               # Center-align text
         fontWeight = 'normal'               # Optional: make sure font weight is consistent
       )
@@ -225,6 +270,39 @@ server <- function(input, output, session) {
       file.copy("demo/sample_influent_effluent.csv", file)
     }
   )
+  
+  # Download handler for the plot
+  output$downloadPlot <- downloadHandler(
+    filename = function() {
+      "Performance_Index_Plot.png"
+    },
+    content = function(file) {
+      # Save the plot to the specified file using ggsave
+      ggsave(file, plot = effinf_plot(), device = "png", width = 13.33333333333333, height = 7.33333333333333, dpi = 300)
+    }
+  )
+  
+  output$downloadGauge <- downloadHandler(
+    filename = function() {
+      "Performance_Index_Gauge.png"
+    },
+    content = function(file) {
+      # Save the gauge plot as a PNG using orca
+      p <- gauge_plot()  # Get the reactive gauge plot
+      #plotly::orca(p, file = file)  # Save it as PNG
+    }
+  )
+  
+  output$downloadTable <- downloadHandler(
+    filename = function() {
+      "Performance_Index_Summary.csv"
+    },
+    content = function(file) {
+      write.csv(summary_dat(), file, row.names = FALSE)
+    }
+  )
+  
+  
 }
 
 # Run the application
