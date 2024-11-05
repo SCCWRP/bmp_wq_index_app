@@ -2,7 +2,9 @@ library(shiny)
 library(dplyr)
 library(ggplot2)
 library(DT)
+library(reticulate)
 
+#py_install(c('plotly', 'kaleido'), pip = TRUE)
 # UI
 # UI
 ui <- fluidPage(
@@ -66,7 +68,7 @@ ui <- fluidPage(
                conditionalPanel(
                  condition = "output.dataUploaded == true",
                  h4("Performance Index Score"),
-                 downloadButton("downloadGauge", "Download Gauge")
+                 downloadButton("downloadGauge", "Download Gauge (might take up to a minute)")
                ),
                div(
                  style = "display: flex; justify-content: center;",  # Center the gauge output
@@ -191,7 +193,7 @@ server <- function(input, output, session) {
         "Failure" = "#661100"
       )) +
       geom_hline(yintercept = 1, linetype = "dashed") +
-      annotate("segment", x = 1, xend = 1, y = min(df$`eff/thresh`), yend = 1, linetype = "dashed", color = "black") +  # Use annotate for the vertical line
+      annotate("segment", x = 1, xend = 1, y = min(df$`eff/thresh`), yend = 1, linetype = "dashed", color = "black") +
       geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
       coord_fixed() +
       # Explicitly set the background color to white
@@ -287,11 +289,17 @@ server <- function(input, output, session) {
       "Performance_Index_Gauge.png"
     },
     content = function(file) {
-      # Save the gauge plot as a PNG using orca
       p <- gauge_plot()  # Get the reactive gauge plot
-      #plotly::orca(p, file = file)  # Save it as PNG
+
+      #orca(p, "plot.png")      
+      # Use normalizePath to convert to forward slashes
+      temp_file <- normalizePath(tempfile(fileext = ".png"), winslash = "/")
+
+      plotly::save_image(p, file = temp_file, format = "png", scale = 3)  # Save the image to temp location
+      file.copy(temp_file, file)  # Copy it to the location needed for download
     }
   )
+  
   
   output$downloadTable <- downloadHandler(
     filename = function() {
