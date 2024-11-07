@@ -3,94 +3,129 @@ library(dplyr)
 library(ggplot2)
 library(DT)
 library(reticulate)
+library(shinydashboard)
 
 #py_install(c('plotly', 'kaleido'), pip = TRUE)
+
 # UI
-# UI
-ui <- fluidPage(
-  titlePanel("BMP Water Quality Performance Index"),
-  #useBusyIndicators(),
-  sidebarLayout(
-    sidebarPanel(
-      h4("Instructions for Use:"),
-      tags$ol(
-        tags$li("Download csv template."),
-        tags$li("Populate template with BMP monitoring data.",
-                tags$ol(type = "a",  # Sub-list using letters
-                        tags$li("Data must be event mean concentrations (EMCs) from paired influent-effluent sampling."),
-                        tags$li("All EMC data must be from same pollutant with same unit (e.g., TSS in mg/L)."),
-                        tags$li("Data limit is 5Mb.")
-                )
-        ),
-        tags$li("Upload data template to generate the Performance Index Plot, Score, and Summary Table."),
-        tags$li("Identify a relevant threshold for the pollutant of interest.",
-                tags$ol(type = "a",  # Sub-list using letters
-                        tags$li("Units must be consistent with the data template.")
-                )
-        ),
-        tags$li("Interpret BMP Performance from Index Score - is the BMP working according to expectations?:",
-                tags$ol(type = "a",  # Sub-list using letters
-                        tags$li("Recommended data queries"),
-                        tags$li("uggested remedial actions")
-                )
-        ),
-        
-        
-        tags$li("Optional:",
-                tags$ol(type = "a",  # Sub-list using letters
-                        tags$li("Download Performance Index Plot, Score, and Summary Table."),
-                        tags$li("Adjust threshold to see how Performance Index changes."),
-                        tags$li("Upload new data to see how Performance Index varies across pollutant class and BMP types.")
-                )
-        )
-      ),
-      downloadButton("downloadData", "Download CSV Template"),
-      fileInput("file", "Upload CSV File", accept = c(".csv")),
-      numericInput("threshold", "Threshold", value = 1, min = 0),
-      
-      tags$img(src = "intepretation-slide.png", height = "100%", width = "100%")
-      , width = 6),  # Set sidebarPanel width to 6
-    
-    mainPanel(
-      fluidRow(
-        column(12,
-               conditionalPanel(
-                 condition = "output.dataUploaded == true",  # This condition will check if the data is uploaded
-                 h4("Performance Index Plot"),
-                 downloadButton("downloadPlot", "Download Plot")
-               ),
-               uiOutput("effinf_output")
-        )
+ui <- dashboardPage(
+  dashboardHeader(title = "Main Panel"), 
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Welcome", tabName = "Welcome", icon = icon("home")),
+      menuItem("How is my BMP Performing?", tabName = "Performance", icon = icon("check-circle"))
+    )
+  ),
+  dashboardBody(
+    tabItems(
+      # First tab content
+      tabItem(tabName = "Welcome",
+              h1("Welcome to the BMP Performance App", align = 'center'),
+              br(),
+              box(status = "primary", width = 12,
+                  fluidRow(
+                    column(width = 12,
+                           h3("Adaptive Management App for Storm Water Managers", align = "center"),
+                           p("This application allows watershed managers to analyze the performance..."),
+                           p("The BMP app supports monitoring designs that collect BMP influent..."),
+                           br(),
+                           p("This web app has three tabs (starting with the navigation pane on the left):..."),
+                           br(),
+                           p("Enjoy! Version 1, updated: 3-21-23")
+                    )
+                  ),
+                  box(status = "primary", width = 12, 
+                      h3("Contributors", align = "center"), 
+                      p(align = "center", a(href = "https://www.sccwrp.org/about/staff/elizabeth-fassman-beck/", 'Dr. Elizabeth Fassman-Beck'),", Southern California Coastal Water Research Project"),
+                      p(align = "center", a(href = "https://www.sccwrp.org/about/staff/ken-schiff/", 'Ken Schiff'),", Southern California Coastal Water Research Project"),
+                      p(align = "center", a(href = "https://www.sccwrp.org/about/staff/dr-edward-tiernan/", 'Dr. Edward Tiernan'),", Southern California Coastal Water Research Project"),
+                      p(align = "center", a(href = "https://www.sccwrp.org/about/staff/robert-butler/", 'Robert Butler'),", Southern California Coastal Water Research Project"),
+                      p(align = "center", a(href = "https://www.sccwrp.org/about/staff/duy-nguyen/", 'Duy Nguyen'),", Southern California Coastal Water Research Project")
+                  )
+              )
       ),
       
-      fluidRow(
-        column(12,
-               conditionalPanel(
-                 condition = "output.dataUploaded == true",
-                 h4("Performance Index Score"),
-                 downloadButton("downloadGauge", "Download Gauge (might take up to a minute)")
-               ),
-               div(
-                 style = "display: flex; justify-content: center;",  # Center the gauge output
-                 plotly::plotlyOutput("score.gauge", width = "700px", height = "300px")
-               )
-        )
-      ),
-      
-      fluidRow(
-        column(12,
-               conditionalPanel(
-                 condition = "output.dataUploaded == true",
-                 h4("Performance Index Summary Table"),
-                 downloadButton("downloadTable", "Download Summary Table")
-               ),
-               DT::dataTableOutput("gauge.table")
-        )
+      # Second tab content
+      tabItem(tabName = "Performance",
+              sidebarLayout(
+                sidebarPanel(
+                  h4("Instructions for Use:"),
+                  tags$ol(
+                    tags$li("Download csv template."),
+                    tags$li("Populate template with BMP monitoring data.", 
+                            tags$ol(type = "a",
+                                    tags$li("Data must be event mean concentrations (EMCs) from paired influent-effluent sampling."),
+                                    tags$li("All EMC data must be from same pollutant with same unit (e.g., TSS in mg/L)."),
+                                    tags$li("Data limit is 5Mb.")
+                            )
+                    ),
+                    tags$li("Upload data template to generate the Performance Index Plot, Score, and Summary Table."),
+                    tags$li("Identify a relevant threshold for the pollutant of interest.",
+                            tags$ol(type = "a",
+                                    tags$li("Units must be consistent with the data template.")
+                            )
+                    ),
+                    tags$li("Interpret BMP Performance from Index Score - is the BMP working according to expectations?",
+                            tags$ol(type = "a",
+                                    tags$li("Recommended data queries"),
+                                    tags$li("Suggested remedial actions")
+                            )
+                    ),
+                    tags$li("Optional:",
+                            tags$ol(type = "a",
+                                    tags$li("Download Performance Index Plot, Score, and Summary Table."),
+                                    tags$li("Adjust threshold to see how Performance Index changes."),
+                                    tags$li("Upload new data to see how Performance Index varies across pollutant class and BMP types.")
+                            )
+                    )
+                  ),
+                  downloadButton("downloadData", "Download CSV Template"),
+                  fileInput("file", "Upload CSV File", accept = c(".csv")),
+                  numericInput("threshold", "Threshold", value = 1, min = 0),
+                  tags$img(src = "intepretation-slide.png", height = "100%", width = "100%"), width = 6
+                ),
+                mainPanel(
+                  fluidRow(
+                    column(12,
+                           conditionalPanel(
+                             condition = "output.dataUploaded == true", 
+                             h4("Performance Index Plot"),
+                             downloadButton("downloadPlot", "Download Plot")
+                           ),
+                           shinycssloaders::withSpinner(uiOutput("effinf_output"))
+                    )
+                  ),
+                  fluidRow(
+                    column(12,
+                           conditionalPanel(
+                             condition = "output.dataUploaded == true",
+                             h4("Performance Index Score"),
+                             downloadButton("downloadGauge", "Download Gauge (might take up to a minute)")
+                           ),
+                           div(style = "display: flex; justify-content: center;",
+                               plotly::plotlyOutput("score.gauge", width = "700px", height = "300px")
+                           )
+                    )
+                  ),
+                  fluidRow(
+                    column(12,
+                           conditionalPanel(
+                             condition = "output.dataUploaded == true",
+                             h4("Performance Index Summary Table"),
+                             downloadButton("downloadTable", "Download Summary Table")
+                           ),
+                           DT::dataTableOutput("gauge.table")
+                    )
+                  ),
+                  width = 6
+                )
+              )
       )
-      , width = 6)  # Set mainPanel width to 6
-    
+    )
   )
 )
+
+
 
 
 # Server
