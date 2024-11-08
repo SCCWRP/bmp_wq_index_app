@@ -25,13 +25,13 @@ ui <- dashboardPage(
               box(status = "primary", width = 12,
                   fluidRow(
                     column(width = 12,
-                           h3("Adaptive Management App for Storm Water Managers", align = "center"),
-                           p("This application allows watershed managers to analyze the performance..."),
-                           p("The BMP app supports monitoring designs that collect BMP influent..."),
+                           h3("BMP Performance Index", align = "center"),
+                           p("TEXT"),
+                           p("TEXT"),
                            br(),
-                           p("This web app has three tabs (starting with the navigation pane on the left):..."),
+                           p("TEXT"),
                            br(),
-                           p("Enjoy! Version 1, updated: 3-21-23")
+                           p("TEXT")
                     )
                   ),
                   box(status = "primary", width = 12, 
@@ -84,41 +84,8 @@ ui <- dashboardPage(
                   numericInput("threshold", "Threshold", value = 1, min = 0),
                   tags$img(src = "intepretation-slide.png", height = "100%", width = "100%"), width = 6
                 ),
-                mainPanel(
-                  fluidRow(
-                    column(12,
-                           conditionalPanel(
-                             condition = "output.dataUploaded == true", 
-                             h4("Performance Index Plot"),
-                             downloadButton("downloadPlot", "Download Plot")
-                           ),
-                           shinycssloaders::withSpinner(uiOutput("effinf_output"))
-                    )
-                  ),
-                  fluidRow(
-                    column(12,
-                           conditionalPanel(
-                             condition = "output.dataUploaded == true",
-                             h4("Performance Index Score"),
-                             downloadButton("downloadGauge", "Download Gauge (might take up to a minute)")
-                           ),
-                           div(style = "display: flex; justify-content: center;",
-                               plotly::plotlyOutput("score.gauge", width = "700px", height = "300px")
-                           )
-                    )
-                  ),
-                  fluidRow(
-                    column(12,
-                           conditionalPanel(
-                             condition = "output.dataUploaded == true",
-                             h4("Performance Index Summary Table"),
-                             downloadButton("downloadTable", "Download Summary Table")
-                           ),
-                           DT::dataTableOutput("gauge.table")
-                    )
-                  ),
-                  width = 6
-                )
+                uiOutput("mainPanelUI"),
+ 
               )
       )
     )
@@ -130,6 +97,61 @@ ui <- dashboardPage(
 
 # Server
 server <- function(input, output, session) {
+  
+  # Conditionally render the mainPanel based on the value of 'threshold'
+  output$mainPanelUI <- renderUI({
+   
+    # Check if threshold is NULL, negative, or empty
+    if (is.null(input$threshold) || input$threshold == "" || input$threshold <= 0 || is.na(input$threshold)) {
+      return(NULL)  # Hide mainPanel by returning NULL
+    } else {
+      # Show mainPanel if threshold is valid
+      mainPanel(
+        fluidRow(
+          column(12,
+                 conditionalPanel(
+                   condition = "output.dataUploaded == true", 
+                   h4("Performance Index Plot"),
+                   downloadButton("downloadPlot", "Download Plot")
+                 ),
+                 shinycssloaders::withSpinner(uiOutput("effinf_output"))
+          )
+        ),
+        fluidRow(
+          column(12,
+                 conditionalPanel(
+                   condition = "output.dataUploaded == true",
+                   h4("Performance Index Score"),
+                   uiOutput("downloadButtonUI")
+                 ),
+                 div(style = "display: flex; justify-content: center;",
+                     plotly::plotlyOutput("score.gauge", width = "700px", height = "300px")
+                 )
+          )
+        ),
+        fluidRow(
+          column(12,
+                 conditionalPanel(
+                   condition = "output.dataUploaded == true",
+                   h4("Performance Index Summary Table"),
+                   downloadButton("downloadTable", "Download Summary Table")
+                 ),
+                 DT::dataTableOutput("gauge.table")
+          )
+        ),
+        width = 6
+      
+    )}
+  })
+  
+  
+  
+  
+  
+  buttonText <- reactiveValues(text = "Download Gauge (might take up to a minute)")
+  output$downloadButtonUI <- renderUI({
+    downloadButton("downloadGauge", label = buttonText$text)
+  })
   
   # Define required columns
   required_columns <- c("influent", "effluent")
@@ -324,6 +346,9 @@ server <- function(input, output, session) {
       "Performance_Index_Gauge.png"
     },
     content = function(file) {
+      
+      buttonText$text <- "Downloading..."
+      
       p <- gauge_plot()  # Get the reactive gauge plot
 
       #orca(p, "plot.png")      
@@ -332,6 +357,10 @@ server <- function(input, output, session) {
 
       plotly::save_image(p, file = temp_file, format = "png", scale = 3)  # Save the image to temp location
       file.copy(temp_file, file)  # Copy it to the location needed for download
+      
+      # Reset button text after download completes
+      buttonText$text <- "Download Gauge (might take up to a minute)"
+      
     }
   )
   
