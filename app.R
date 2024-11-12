@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(DT)
 library(shinydashboard)
+library(plotly)
 
 css <- '
     .centerImage {
@@ -478,7 +479,7 @@ server <- function(input, output, session) {
     if (is.null(input$file$datapath)) {
       tags$img(src = "placeholder-eff-plot.png", height = "95%", width = "95%")
     } else {
-      plotOutput("effinf_plot")
+      plotly::plotlyOutput("effinf_plot")
     }
   })
   
@@ -520,8 +521,18 @@ server <- function(input, output, session) {
       )
   }) |> bindEvent(input$threshold, input$pollutant_name)
   
-  output$effinf_plot <- renderPlot({
-    effinf_plot()
+  output$effinf_plot <- plotly::renderPlotly({
+    ggplotly(effinf_plot())  %>%
+      layout(
+        xaxis = list(
+          tickmode = "auto",
+          dtick = 0.1  # Adjust dtick value as per requirement for finer ticks
+        ),
+        yaxis = list(
+          tickmode = "auto",
+          dtick = 0.1  # Adjust dtick for finer control on y-axis
+        )
+      )
   })
   
   # Gauge output
