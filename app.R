@@ -358,6 +358,13 @@ ui <- dashboardPage(
 # Server
 server <- function(input, output, session) {
   
+  
+  observeEvent(input$file, {
+ 
+    processed_data <- reactiveVal(NULL) # Reset processed_data to NULL on file change
+  
+  })
+  
   # Conditionally render the mainPanel based on the value of 'threshold'
   output$mainPanelUI <- renderUI({
     
@@ -422,6 +429,7 @@ server <- function(input, output, session) {
   processed_data <- reactive({
     req(input$file)
     req(input$threshold > 0)
+
     
     # Load the CSV data
     df <- tryCatch(
@@ -432,7 +440,7 @@ server <- function(input, output, session) {
         NULL  # Return NULL if there's an error reading the file
       }
     )
-    
+ 
     # Validate if the file was read successfully (not NULL) and is not empty
     validate(
       need(!is.null(df), "The uploaded file is either empty or invalid. Please upload a valid CSV file."),
@@ -472,7 +480,10 @@ server <- function(input, output, session) {
       ) %>%
       mutate(quadrant2 = factor(quadrant2, levels = c("Success", "Excess", "Marginal", "Insufficient", "Failure")))
     
-    return(df)
+
+    
+    df
+    
   })
   
   output$effinf_output <- renderUI({
@@ -487,9 +498,9 @@ server <- function(input, output, session) {
   
   
   effinf_plot <- reactive({
-    req(processed_data())
+   
     df <- processed_data()
-    
+
     ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant2)) +
       geom_point(size = 3) +
       labs(
@@ -519,7 +530,7 @@ server <- function(input, output, session) {
         plot.background = element_rect(fill = "white", color = NA),
         panel.background = element_rect(fill = "white", color = "black")
       )
-  }) |> bindEvent(input$threshold, input$pollutant_name)
+  }) |> bindEvent(input$threshold, input$pollutant_name, input$file)
   
   output$effinf_plot <- plotly::renderPlotly({
     ggplotly(effinf_plot())  %>%
@@ -533,7 +544,7 @@ server <- function(input, output, session) {
           dtick = 0.1  # Adjust dtick for finer control on y-axis
         )
       )
-  })
+  }) |> bindEvent(input$file)
   
   # Gauge output
   # Reactive expression for the gauge plot
