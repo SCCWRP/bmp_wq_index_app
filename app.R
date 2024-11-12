@@ -65,7 +65,7 @@ css <- '
     '
 # UI
 ui <- dashboardPage(
-  dashboardHeader(title = "Main Panel"),
+  dashboardHeader(title = "BMP Performance Index Calculator"),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Welcome", tabName = "Welcome", icon = icon("home")),
@@ -78,8 +78,8 @@ ui <- dashboardPage(
       # First tab content
       tabItem(
         tabName = "Welcome",
-        h1("BMP Performance Index Calculator for Stormwater Managers", align = "center"),
-        h2(HTML("This application was developed to support the analysis Fassman-Beck et al. (2025) – A Data-Driven Index for Evaluating BMP Water Quality Performance <a href='https://www.sccwrp.org/' target='_blank'>DOI link</a>"), align = "center"),
+        h1("BMP Water Quality Performance Index Calculator", align = "center"),
+        h2(HTML("This application was developed to implement the analysis Fassman-Beck et al. (2025) – A Data-Driven Index for Evaluating BMP Water Quality Performance <a href='https://www.sccwrp.org/' target='_blank'>DOI link forth coming</a>"), align = "center"),
         br(),
         div(
           style = "height: calc(100vh - 150px); overflow-y: auto; padding-right: 10px;font-size: 18px;", 
@@ -144,25 +144,37 @@ ui <- dashboardPage(
                       h3("Overview", id = "Overview"),
                       p(
                         "
-                      The Performance Index for structural Best Management Practices (BMPs) is a method to organize and interpret quantitative water quality monitoring data to help answer the question:
+                      The Water Quality Performance Index for structural Best Management Practices (BMPs) is a method to organize and interpret quantitative water quality monitoring data to help answer the question:
                       "
                       ),
                       tags$ul(
                         tags$li("Is the BMP helping to achieve receiving water quality goals?")
                       ),
                       p("
-                      The BMP Performance Index benchmarks achievements towards site-specific water quality goals while considering storm-to-storm operating conditions. The framework enables objective, unbiased assessments across a range of pollutant types, water quality goals, and/or implementations across a wide variety of landscape settings. It can be used to investigate performance for a single BMP, a group of BMPs, or to compare amongst BMPs, regardless of location, design basis, or storm conditions.  
+                      The BMP Water Quality Performance Index benchmarks achievements towards site-specific water quality goals while considering storm-to-storm operating conditions. The framework enables objective, unbiased assessments across a range of pollutant types, water quality goals, and/or implementations across a wide variety of landscape settings. It can be used to investigate performance for a single BMP, a group of BMPs, or to compare amongst BMPs, regardless of location, design basis, or storm conditions.  
                     "),
                       h3("Framework", id = "Framework"),
                       p(em("Does the BMP help to achieve receiving water quality objectives?", .noWS = "outside")),
                       p("The Water Quality BMP Performance Index applies a user-defined water quality threshold to partition paired influent-effluent pollutant event mean concentration data into five distinct categories. Figure WQ1 illustrates the conceptual design of the Water Quality BMP Performance Index as the relationship between paired influent-effluent data and the user-defined water quality threshold. Normalizing measured event mean concentrations by the water quality threshold benchmarks runoff as “clean” or “dirty,” and enables the user to combine data from multiple studies or BMPs for comparative evaluation."),
-                      p("The basic structure and conceptual design of the Performance Index is illustrated through an application using total copper data (n=149 data pairs) from 33 bioretention cells (Figure WQ1a-d). Each data point represents paired influent-effluent EMC data for an individual storm event monitored at a single bioretention BMP. The same data are represented in each plot. Figures WQ1a-c illustrate three distinct ways that the event pairs can be dissected, while Figure WQ1d labels the regions that emerge from the superposition of these dividing lines in terms of their contribution to BMP treatment objectives."),
+                      p("The basic structure and conceptual design of the Performance Index is illustrated through 
+                        an application using total suspended solids (TSS) (n=9 data pairs, Figure WQ1a-d from 18 bioretention cells extracted from the International Stormwater BMP Database. Each data point represents paired influent-effluent EMC data for an individual storm event monitored at a single bioretention BMP. The same data are represented in each plot. Figures WQ1a-c illustrate three distinct ways that the event pairs can be dissected, while Figure WQ1d labels the regions that emerge from the superposition of these dividing lines in terms of their contribution to BMP treatment objectives."),
                       tags$figure(
                         tags$img(src = "figure-wq-1.png",width = '70%', height = '70%', class = "centerImage"),
-                        tags$figcaption("Figure WQ1. Water Quality BMP Performance Index conceptual design using total copper from 33 bioretention BMPs in the ", a(href = "https://bmpdatabase.org/", target = "_blank", "International Stormwater BMP Database", style = "color: #0000EE;", .noWS = "outside"), ": (a) Does influent require treatment to meet water quality thresholds?; (b) Does effluent exceed a water quality threshold?; (c) Are pollutants removed or exported?; and (d) Translating numerical data into narrative outcomes.  N=139 total site-events.")
+                        tags$figcaption("
+                            Figure WQ1. Water Quality BMP Performance Index conceptual design using total suspended solids from 18 bioretention 
+                                        BMPs in the ", a(href = "https://bmpdatabase.org/", target = "_blank", "International Stormwater BMP Database", style = "color: #0000EE;", .noWS = "outside"), ": (a) Does influent require treatment 
+                                        to meet water quality thresholds?; (b) Does effluent exceed a water quality threshold?; (c) Are pollutants removed or exported?; 
+                                        and (d) Translating numerical data into narrative outcomes.  N=309 total site-events. 69 Success data points and 10 Insufficient data points not shown to maintain figure clarity.
+                                        ")
                       ),
-                      p("The Water Quality Performance Index investigates paired influent-effluent pollutant flow-weighted event mean concentrations. The focus on event mean concentrations rather than mass loads yields critical information on whether a BMP successfully provides some treatment mechanism(s) to transform or sequester pollutants, such as filtration, sorption, sedimentation, degradation, or volatilization. Runoff retention is considered separately in the Hydrology Performance Index."),
-                      p("Figure WQ1d contains categorical performance determinations of the paired event data based on their positions relative to the water quality threshold dividing lines depicted in Figures 1a-c. The Water Quality BMP Performance Index identifies results among five descriptive categories as follows in order of their managerial preference:"),
+                      p("The Water Quality Performance Index investigates paired influent-effluent pollutant flow-weighted event mean concentrations. 
+                        The focus on event mean concentrations rather than mass loads yields critical information on whether a BMP successfully provides some 
+                        treatment mechanism(s) to transform or sequester pollutants, such as filtration, sorption, sedimentation, degradation, or volatilization. 
+                        Runoff retention is not considered Water Quality Performance Index."),
+                      p("Figure WQ1d contains categorical performance determinations of the paired event data based on their positions relative to the water 
+                        quality threshold dividing lines depicted in Figures 1a-c. 
+                        The Water Quality BMP Performance Index identifies results among five descriptive categories as follows in order of their managerial 
+                        preference (Fig. WQ2):"),
                       tags$ul(
                         tags$li("Success – The most preferred outcome, the runoff entering the BMP is “dirty” for the pollutant of interest yet treated effluent is at least as “clean” as the water quality threshold. The BMP provides meaningful pollutant removal mechanism(s)."),
                         tags$li("Excess – The influent is considered “clean,” for the pollutant of interest.  Treatment is achieved by the BMP but not strictly needed because the concentration is already below water quality threshold. "),
@@ -171,12 +183,18 @@ ui <- dashboardPage(
                         tags$li("Failure – The BMP exports pollutants at concentrations greater than water quality threshold, potentially exacerbating downstream water quality conditions. Corrective action is required."),
                       ),
                       p("Data points falling on dividing lines are assigned to the more protective category. Data pairs categorized as Marginal or Excess may incorporate relatively more noise or uncertainty associated with detection of low concentrations. A BMP that exports pollutants (effluent concentration exceeds influent concentration) is considered a Failure for any influent concentration unless the water quality threshold is not exceeded (i.e., Marginal). Insufficient BMPs are considered less desirable than Marginal BMPs due to the continued elevated pollutant contribution to the receiving waters; resources should be allocated towards additional treatment before rehabilitating Marginal BMPs. "),
+                      tags$figure(
+                        style = "text-align: center;",
+                        tags$img(src = "placeholder-eff-plot.png", style = "width:60%; height:60%;"),
+                        tags$figcaption("Figure WQ2. Water Quality Performance Index Framework")
+                      ),
+                      
                       h3("Scoring", id = "Scoring"),
                       p("The categorical outcome introduced above provides a useful determination of whether a BMP is contributing towards achieving downstream receiving water goals, or if corrective actions are needed for a pollutant type, or for tracking performance by individual storm. A key design criterion for the BMP Performance Index is the ability to capture long-term trends in the data, whether as temporal patterns or comparing amongst BMPs (an individual BMP or amongst a type of BMP) or pollutants directly. To this end, managers need a way to distill the narrative behavior of a suite of monitored BMPs into a single value that can be tracked over time or compared between BMP datasets. In other words, a method to collate storm-by-storm categorical outcomes into a single descriptor of performance is of interest."),
                       p("The Water Quality Index “Score” uses a weighted average to evaluate the overall performance, wherein each category has an intrinsic weight (level of importance) associated with the managerial preference of that outcome. The weighted average is the sum of the proportion of data in each category multiplied by the weighting factor of that category as in Equation 1: "),
                       HTML("$$\\begin{equation} S = \\sum_{i=1}^nw_iX_i \\tag{1} \\end{equation}$$") |> withMathJax(),
                       p("where $S$ is the weighted average (i.e., the Score), $w_i$ is the weighting factor for each category, $i$, and $X_i$ is the proportion of paired influent-effluent event mean concentration data in each category."),
-                      p("The value of the weighting factor per category is derived from the managerial implication of the Score. The final index score should be: transparent and quantitative, reflect the underlying distribution of the categorical outcomes, strongly penalize the failure conditions that conclusively signal BMP performance disruption, and contribute to clear management decision making."),
+                      p("The value of the weighting factor per category is derived from the managerial implication of the Score. The final index score is intended to be: transparent and quantitative, reflect the underlying distribution of the categorical outcomes, strongly penalize the failure conditions that conclusively signal BMP performance disruption, and contribute to clear management decision making."),
                       p("Many alternatives to the category weights were considered. The categorical weighting scheme that best fit the criteria listed above breaks down as:"),
                       tags$ul(
                         tags$li("Success = 0"),
@@ -187,19 +205,19 @@ ui <- dashboardPage(
                       ),
                       tags$figure(
                         style = "text-align: center;",
-                        tags$img(src = "placeholder-eff-plot.png", style = "width:60%; height:60%;"),
-                        tags$figcaption("Figure WQ2. Managerial implications if all data were to fall into a single category.")
+                        tags$img(src = "placeholder-eff-plot-archived-2.png", style = "width:60%; height:60%;"),
+                        tags$figcaption("Figure WQ3. Managerial implications if all data were to fall into a single category")
                       ),
                       p("
                       This weighting scheme (i.e., set of wi weighting factors in Eq. 1) reflects the underlying preference of resource allocation to BMPs presenting in each category (Figure WQ2). Excess BMPs are not substantively different from Success BMPs in the eyes of a stormwater infrastructure manager (neither requires intervention), so they receive similar scores. However, if all data were to be found in the Excess category, it indicates the pollutant of interest is not of concern at the specific location and potentially calls for better source identification in future applications (i.e., are BMP siting criteria appropriate with respect to pollutant loading assumptions?). Marginal and Insufficient BMPs are both acknowledged to be worse outcomes than Success or Excess. Marginal BMPs may suffer from a design, construction, or maintenance deficiency but not to an extent that corrective action is immediately required. It is acknowledged that Marginal and Excess BMPs are characterized by low concentrations in influent and effluent, relative to the water quality threshold; there may be some influence of noise in this data as low concentrations are more difficult to measure accurately. Insufficient-category BMPs are generally considered deserving of additional resource allocation due to the continued elevated pollutant contributions to the receiving water. Additional treatment would be needed to ultimately achieve receiving water goals, which could be achieved by introducing additional pollutant removal mechanisms, either through a treatment train, retrofitting the existing BMP, or treating runoff elsewhere in the watershed. BMPs exhibiting water quality outcomes in the Failure condition received a high penalty in the mash-up score to indicate that these sites clearly indicate unacceptable performance that require near-term corrective action. A systematic error in design or construction may lead to a BMP type determined as Failure for a particular pollutant.
                     "),
                       p("
-                    Figure WQ3 illustrates the transition points and how the Index Score contributes to decision making for stormwater managers. Additional lines of inquiry are included for technical designers and planners to further investigate the broad management action zones. The Index Score reflects the weighted average across all the BMP site-events available in the dataset. Low scores are associated with the best / most preferred outcomes. Where at least half of the data fall into a single category, the suggested management action reflects the implication of that category (Figure WQ2).  
+                    Figure WQ4 illustrates the transition points and how the Index Score contributes to decision making for stormwater managers. Additional lines of inquiry are included for technical designers and planners to further investigate the broad management action zones. The Index Score reflects the weighted average across all the BMP site-events available in the dataset. Low scores are associated with the best / most preferred outcomes. Where at least half of the data fall into a single category, the suggested management action reflects the implication of that category.  
                     "),
                       tags$figure(
                         style = "text-align: center;",
                         tags$img(src = "intepretation-slide.png", style = "width:60%; height:60%;"),
-                        tags$figcaption("Figure WQ3. Water Quality Performance Index Score color bar with managerial interpretation of the score. A framework for data queries to investigate the Score more deeply is provided.")
+                        tags$figcaption("Figure WQ4. Water Quality Performance Index Score color bar with managerial interpretation of the score. A framework for data queries to investigate the Score more deeply is provided.")
                       ),
                       
                       p("
@@ -211,13 +229,15 @@ ui <- dashboardPage(
                       "),
                       
                       p("
-                      Water Quality Performance Index Scores greater than 5.0 indicate a significant fraction of Failures. Individual or types of BMPs that fall into this category are consistently failing to meet water quality objectives while potentially exacerbating downstream water quality. Managerial actions of additional treatment installation or maintenance activities are necessary. Design procedures, or sources of materials used to construct the BMP may require revision to prevent failures in future installations.
+                      Water Quality Performance Index Scores greater than 5.0 indicate a significant fraction of Failures. 
+                      Individual or types of BMPs that fall into this category are consistently failing to meet water quality objectives while potentially 
+                      exacerbating downstream water quality. Corrective actions such as performing BMP maintainance, and/or investigating design and/or construction are warranted. Design procedures, or sources of materials used to construct the BMP may require revision to prevent failures in future installations.
                       "),
                       
                       h3("Acknowledgement", id = "Acknowledgement"),
                       p(
                         "
-                    Funding for the BMP Performance Index was provided by the County of Los Angeles Department of Public Works. Index development was conducted by the Southern California Coastal Water Research Project (SCCWRP) with input from a 6-person advisory group. The advisory group was composed of representatives from California’s regulatory agencies, watershed managers, and primary permittees, as well as industry, academia, and a non-governmental organization.
+                    Funding for the BMP Performance Index was provided by the County of Los Angeles Department of Public Works. Index development was conducted by the Southern California Coastal Water Research Project (SCCWRP) with input from a 6-person advisory group. The advisory group was composed of representatives from California’s regulatory agencies, watershed managers, and primary permittees, as well as industry, academia, and a non-governmental organization. Participation in the Advisory Committee does not reflect endorsement of the Performance Index by individuals or the organization they represent.
                     " 
                       ),
                       
@@ -247,13 +267,13 @@ ui <- dashboardPage(
                 ),
                 column(
                   width = 6,
+                  h3("Los Angeles County Department of Public Works Project Manager: Frank Cheng", align = "left"),
                   h3("Advisory Group Members", align = "center"),
                   div(
                     style = "display: flex; flex-direction: column; align-items: center;",
                     tags$ul(
                       style = "list-style-position: inside; text-align: left; padding: 0;",
-                      tags$li("Frank Cheng, Los Angeles Public Works"),
-                      tags$li("Bridget Wadzuk, Villanova University"),
+                      tags$li("Dr. Bridget Wadzuk, Villanova University"),
                       tags$li("Annelisa Moe, Heal the Bay"),
                       tags$li("Richard Boon, Riverside County Flood Control District"),
                       tags$li("Jane Clary, Wright Water"),
@@ -544,7 +564,7 @@ server <- function(input, output, session) {
           dtick = 0.1  # Adjust dtick for finer control on y-axis
         )
       )
-  }) |> bindEvent(input$file)
+  }) |> bindEvent(input$file, input$threshold, input$pollutant_name)
   
   # Gauge output
   # Reactive expression for the gauge plot
