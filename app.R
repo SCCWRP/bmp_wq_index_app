@@ -267,22 +267,40 @@ ui <- dashboardPage(
                 ),
                 column(
                   width = 6,
-                  h3("Los Angeles County Department of Public Works Project Manager: Frank Cheng", align = "left"),
-                  h3("Advisory Group Members", align = "center"),
+                  
+                  # Header for Project Manager
+                  h3("Los Angeles County Department of Public Works Project Manager"),
+                  
+                  # List for Project Manager
                   div(
-                    style = "display: flex; flex-direction: column; align-items: center;",
+                    style = "display: flex; flex-direction: column; align-items: flex-start;",
+                    tags$ul(
+                      style = "list-style-position: inside; text-align: left; padding: 0;",
+                      tags$li("Frank Cheng")
+                    )
+                  ),
+                  
+                  # Header for Advisory Group Members
+                  h3("Advisory Group Members"),
+                  
+                  # List for Advisory Group Members
+                  div(
+                    style = "display: flex; flex-direction: column; align-items: flex-start;",
                     tags$ul(
                       style = "list-style-position: inside; text-align: left; padding: 0;",
                       tags$li("Dr. Bridget Wadzuk, Villanova University"),
-                      tags$li("Annelisa Moe, Heal the Bay"),
-                      tags$li("Richard Boon, Riverside County Flood Control District"),
-                      tags$li("Jane Clary, Wright Water"),
+                      tags$li("Annalisa Moe, Heal the Bay"),
+                      tags$li("Richard Boon, Riverside County Flood Control and Water Conservation District"),
+                      tags$li("Jane Clary, Wright Water Engineers"),
                       tags$li("Chris Beegan, California State Water Resources Control Board"),
                       tags$li("LB Nye, Los Angeles Regional Water Quality Control Board"),
                       tags$li("Bhaskar Joshi, Caltrans")
                     )
                   )
                 )
+                
+                
+                
               )
             )
             
