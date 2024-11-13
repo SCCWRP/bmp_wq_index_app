@@ -359,11 +359,10 @@ ui <- dashboardPage(
         br(),
         box(
           status = "primary", width = 12,
-          p("For more information about the BMP Performance App, please reach out to us at:"),
-          p("Email: smcbmp-im@sccwrp.org"),
+          p("For more information about the BMP Performance App, please contact: stormwater@sccwrp.org"),
           p(
             "We value your feedback! Please share any suggestions or questions by filling out our ",
-            a(href = "https://www.sccwrp.org/", "Feedback Form", target = "_blank"),
+            a(href = "https://forms.office.com/Pages/ResponsePage.aspx?id=PfKopOEaHEuZAuqhUwKBkPM1sDQYvi9Ogmxf5DwlQa9URElHMkpKNVdCSDc1NElHTkVaWEg5MVBGQS4u", "Feedback Form", target = "_blank"),
             "."
           )
         )
@@ -585,7 +584,7 @@ server <- function(input, output, session) {
     summary_dat <- summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2')
     summary_dat <- summary_dat %>%
       dplyr::rename(
-        Index = `Performance.Index`,  
+        `Index Score` = `Performance.Index`,  
         `# Success` = num_success,
         `# Excess` = num_excess,
         `# Marginal` = num_marginal,
