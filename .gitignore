@@ -1,3 +1,45 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# User-specific files
+.Ruserdata
 .Rproj.user/
 
+# RStudio files
+.Rproj.user/
 .Rhistory
+.RData
+.Rproj
+
+# Temporary files
+*.tmp
+*.swp
+
+# R-specific cache files
+.Rhistory
+.RData
+.Ruserdata
+
+# Packrat dependency management
+packrat/lib/*
+packrat/src/*
+
+# Output files
+*.html
+*.pdf
+*.docx
+*.xlsx
+*.csv
+*.Rout
+*.md
+
+# Shiny application files
+rsconnect/
+
+# Logs and miscellaneous
+*.log
+.DS_Store
