@@ -365,6 +365,7 @@ ui <- dashboardPage(
             fileInput("file", "Upload CSV File", accept = c(".csv")),
             textInput("pollutant_name", "Pollutant Name/Unit (optional, e.g. Copper, µg/L)", value = ""),
             numericInput("threshold", "Threshold (must be same unit as EMC data)", value = 1, min = 0),
+            verbatimTextOutput("validation_message"), # Display validation feedback (optional)
             tags$img(src = "intepretation-slide.png", height = "100%", width = "100%"),
             width = 6
           ),
@@ -395,6 +396,45 @@ ui <- dashboardPage(
 # Server
 server <- function(input, output, session) {
   
+  valid_input <- reactiveVal(TRUE)
+  
+  # Observe the text input for real-time validation
+
+  observe({
+    # Validation messages
+    messages <- c()
+    
+    # Validate pollutant_name
+    if (nchar(input$pollutant_name) > 30) {
+      messages <- c(messages, "Pollutant Name exceeds the 30-character limit.")
+      shinyFeedback::showFeedbackDanger("pollutant_name", "Input exceeds the 30-character limit.")
+    } else if (!grepl("^[A-Za-z0-9, µg/L/ ]*$", input$pollutant_name)) {
+      messages <- c(messages, "Pollutant Name contains invalid characters. Only letters, numbers, commas, spaces, and units like µg/L are allowed.")
+      shinyFeedback::showFeedbackDanger("pollutant_name", "Invalid characters detected.")
+    } else {
+      shinyFeedback::hideFeedback("pollutant_name")
+    }
+    
+    # Validate threshold
+    if (!is.null(input$threshold) && grepl("\\.\\d{2,}", as.character(input$threshold))) {
+      messages <- c(messages, "Threshold must have at most one decimal place.")
+      shinyFeedback::showFeedbackDanger("threshold", "Input must have at most one decimal place.")
+    } else {
+      shinyFeedback::hideFeedback("threshold")
+    }
+    
+    # Update the validation message
+    if (length(messages) > 0) {
+      valid_input(FALSE)
+      output$validation_message <- renderText(paste(messages, collapse = "\n"))
+    } else {
+      valid_input(TRUE)
+      output$validation_message <- renderText("") # Clear the message if valid
+    }
+  })
+  
+  
+  
   
   observeEvent(input$file, {
  
@@ -404,7 +444,7 @@ server <- function(input, output, session) {
   
   # Conditionally render the mainPanel based on the value of 'threshold'
   output$mainPanelUI <- renderUI({
-    
+    req(valid_input()) # Ensure input is valid
     # Check if threshold is NULL, negative, or empty
     if (is.null(input$threshold) || input$threshold == "" || input$threshold <= 0 || is.na(input$threshold)) {
       return(NULL)  # Hide mainPanel by returning NULL
@@ -416,7 +456,8 @@ server <- function(input, output, session) {
                  conditionalPanel(
                    condition = "output.dataUploaded == true", 
                    h4("Performance Index Plot"),
-                   downloadButton("downloadPlot", "Download Plot")
+                   downloadButton("downloadPlot", "Download Plot"),
+                   actionButton("read_me", "Read Me", class = "btn-info")
                  ),
                  shinycssloaders::withSpinner(uiOutput("effinf_output"))
           )
@@ -426,6 +467,7 @@ server <- function(input, output, session) {
                  conditionalPanel(
                    condition = "output.dataUploaded == true",
                    h4("Performance Index Score"),
+                   h5("The graphic is not available for download")
                    #uiOutput("downloadButtonUI")
                  ),
                  div(style = "display: flex; justify-content: center;",
@@ -536,7 +578,11 @@ server <- function(input, output, session) {
   
   effinf_plot <- reactive({
    
-    df <- processed_data()
+    df <- processed_data() %>%
+      mutate(
+        `inf/thresh` = round(`inf/thresh`, 1), # Round to 1 decimal place
+        `eff/thresh` = round(`eff/thresh`, 1)  # Round to 1 decimal place
+      )
 
     ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant2)) +
       geom_point(size = 3) +
@@ -689,6 +735,24 @@ server <- function(input, output, session) {
       write.csv(summary_dat(), file, row.names = FALSE)
     }
   )
+  # Observe Read Me button click to show modal
+  observeEvent(input$read_me, {
+    showModal(modalDialog(
+      title = "Instructions",
+      tags$div(
+        style = "font-size: 14px;",
+        "When you click the Download Plot button, a .png file formatted for reports or other use cases will be downloaded. 
+        This download includes only the full graphic.",
+        tags$br(),
+        tags$br(),
+        "If you would like to download the interactive plot exactly as it appears on the screen, including any applied filters, 
+        you need to use the camera icon provided in the interactive plot toolbar."
+      ),
+      easyClose = TRUE,
+      footer = modalButton("Close") # Close button for the modal
+    ))
+  })
+  
   
   
 }
