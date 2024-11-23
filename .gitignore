@@ -38,7 +38,7 @@ packrat/src/*
 *.md
 
 # Shiny application files
-rsconnect/
+rsconnect/*
 
 # Logs and miscellaneous
 *.log
