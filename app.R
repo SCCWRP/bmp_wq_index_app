@@ -319,6 +319,10 @@ ui <- dashboardPage(
     #Performance * {
       font-size: 18px; /* Adjust the size as needed */
     }
+     #validation_message {
+      color: red;
+      font-size: 25px;
+    }
   ")),
         sidebarLayout(
           sidebarPanel(
@@ -364,7 +368,7 @@ ui <- dashboardPage(
             downloadButton("downloadData", "Download CSV Template"),
             fileInput("file", "Upload CSV File", accept = c(".csv")),
             textInput("pollutant_name", "Pollutant Name/Unit (optional, e.g. Copper, µg/L)", value = ""),
-            numericInput("threshold", "Threshold (must be same unit as EMC data)", value = 1, min = 0),
+            numericInput("threshold", "Threshold (must be same unit as EMC data)", value = 1, min = 0, step = 0.1),
             verbatimTextOutput("validation_message"), # Display validation feedback (optional)
             tags$img(src = "intepretation-slide.png", height = "100%", width = "100%"),
             width = 6
