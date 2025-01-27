@@ -4,6 +4,8 @@ library(ggplot2)
 library(DT)
 library(shinydashboard)
 library(plotly)
+library(shinyjs)
+
 
 css <- '
     .centerImage {
@@ -65,6 +67,7 @@ css <- '
     '
 # UI
 ui <- dashboardPage(
+  
   dashboardHeader(title = "BMP Performance Index Calculator"),
   dashboardSidebar(
     sidebarMenu(
@@ -326,7 +329,7 @@ ui <- dashboardPage(
   ")),
         sidebarLayout(
           sidebarPanel(
-            
+            useShinyjs(),
             h4("Instructions for Use:"),
             tags$ol(
               tags$li("Download csv template."),
@@ -366,6 +369,7 @@ ui <- dashboardPage(
               )
             ),
             downloadButton("downloadData", "Download CSV Template"),
+            actionButton("emc_link", "Get help with EMCs"),
             fileInput("file", "Upload CSV File", accept = c(".csv")),
             textInput("pollutant_name", "Pollutant Name/Unit (optional, e.g. Copper, µg/L)", value = ""),
             numericInput("threshold", "Threshold (must be same unit as EMC data)", value = 1, min = 0, step = 0.1),
@@ -399,6 +403,10 @@ ui <- dashboardPage(
 
 # Server
 server <- function(input, output, session) {
+  
+  observeEvent(input$emc_link, {
+    shinyjs::runjs('window.open("https://sccwrp.shinyapps.io/FWC_EMC_Calculator/", "_blank");')
+  })
   
   valid_input <- reactiveVal(TRUE)
   
@@ -587,13 +595,18 @@ server <- function(input, output, session) {
         `inf/thresh` = round(`inf/thresh`, 1), # Round to 1 decimal place
         `eff/thresh` = round(`eff/thresh`, 1)  # Round to 1 decimal place
       )
-
-    ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant2)) +
+    print("data")
+    print(df)
+    
+    
+    
+    ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant2, shape = quadrant2)) +
       geom_point(size = 3) +
       labs(
         x = "Influent / Threshold",
         y = "Effluent / Threshold",
         colour = "Performance",
+        shape = "Performance",
         title = ifelse(
           input$pollutant_name == "",
           paste("Threshold:", input$threshold),
@@ -608,6 +621,13 @@ server <- function(input, output, session) {
         "Insufficient" = "#E69F00",
         "Failure" = "#661100"
       )) +
+      scale_shape_manual(values = c(
+        "Success" = 16,      # Circle
+        "Excess" = 17,       # Triangle
+        "Marginal" = 18,     # Diamond
+        "Insufficient" = 8, # Solid circle
+        "Failure" = 15       # Square
+      )) +
       geom_hline(yintercept = 1, linetype = "dashed") +
       annotate("segment", x = 1, xend = 1, y = min(df$`eff/thresh`), yend = 1, linetype = "dashed", color = "black") +
       geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
@@ -617,6 +637,7 @@ server <- function(input, output, session) {
         plot.background = element_rect(fill = "white", color = NA),
         panel.background = element_rect(fill = "white", color = "black")
       )
+    
   }) |> bindEvent(input$threshold, input$pollutant_name, input$file)
   
   output$effinf_plot <- plotly::renderPlotly({
