@@ -1,3 +1,4 @@
+# Inports ----
 library(shiny)
 library(dplyr)
 library(ggplot2)
@@ -6,7 +7,7 @@ library(shinydashboard)
 library(plotly)
 library(shinyjs)
 
-
+# CSS ----
 css <- '
     .centerImage {
       display:block; 
@@ -65,20 +66,22 @@ css <- '
       text-indent: -0.5em;
     }
     '
-# UI
+# UI ----
 ui <- dashboardPage(
-  
+  ## Dashboard Header ----
   dashboardHeader(title = "BMP Performance Index Calculator"),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Welcome", tabName = "Welcome", icon = icon("home")),
-      menuItem("How is my BMP Performing?", tabName = "Performance", icon = icon("check-circle")),
+      menuItem("Water Quality Performance", tabName = "WQ", icon = icon("check-circle")),
+      menuItem("Hydrology Performance", tabName = "Hydro", icon = icon("check-circle")),
       menuItem("Contact", tabName = "Contact", icon = icon("info-circle"))
     )
   ),
+  ## Dashboard Body ----
   dashboardBody(
     tabItems(
-      # First tab content
+      ### Welcome Tab UI ----
       tabItem(
         tabName = "Welcome",
         h1("BMP Water Quality Performance Index Calculator", align = "center"),
@@ -141,7 +144,7 @@ ui <- dashboardPage(
                         )
                       )
                     ),
-                    # main overview text
+                    #### main overview text ----
                     tags$div(
                       style = "text-align: justify",
                       h3("Overview", id = "Overview"),
@@ -271,10 +274,10 @@ ui <- dashboardPage(
                 column(
                   width = 6,
                   
-                  # Header for Project Manager
+                  #### Header for Project Manager ----
                   h3("Los Angeles County Department of Public Works Project Manager"),
                   
-                  # List for Project Manager
+                  #### List for Project Manager ----
                   div(
                     style = "display: flex; flex-direction: column; align-items: flex-start;",
                     tags$ul(
@@ -283,10 +286,10 @@ ui <- dashboardPage(
                     )
                   ),
                   
-                  # Header for Advisory Group Members
+                  #### Header for Advisory Group Members ----
                   h3("Advisory Group Members"),
                   
-                  # List for Advisory Group Members
+                  #### List for Advisory Group Members ----
                   div(
                     style = "display: flex; flex-direction: column; align-items: flex-start;",
                     tags$ul(
@@ -315,18 +318,22 @@ ui <- dashboardPage(
         
       ),
       
-      # Second tab content
+      # WQ Tab UI ----
       tabItem(
-        tabName = "Performance",
+        tabName = "WQ",
+        
+        ## WQ Style ----
         tags$style(HTML("
-    #Performance * {
-      font-size: 18px; /* Adjust the size as needed */
-    }
-     #validation_message {
-      color: red;
-      font-size: 25px;
-    }
-  ")),
+            #Performance * {
+              font-size: 18px; /* Adjust the size as needed */
+            }
+             #validation_message {
+              color: red;
+              font-size: 25px;
+            }
+          ")),
+        
+        ## WQ Sidebar/Instructions ----
         sidebarLayout(
           sidebarPanel(
             useShinyjs(),
@@ -368,18 +375,89 @@ ui <- dashboardPage(
                 )
               )
             ),
+            
+            ## WQ Input widgets, etc ---- 
             downloadButton("downloadData", "Download CSV Template"),
             actionButton("emc_link", "Get help with EMCs"),
-            fileInput("file", "Upload CSV File", accept = c(".csv")),
+            fileInput("wqfile", "Upload CSV File", accept = c(".csv")),
             textInput("pollutant_name", "Pollutant Name/Unit (optional, e.g. Copper, µg/L)", value = ""),
             numericInput("threshold", "Threshold (must be same unit as EMC data)", value = 1, min = 0, step = 0.1),
             verbatimTextOutput("validation_message"), # Display validation feedback (optional)
             tags$img(src = "intepretation-slide.png", height = "100%", width = "100%"),
             width = 6
-          ),
-          uiOutput("mainPanelUI"),
+          ),                        
+          ## WQ Main Panel UI
+          uiOutput("WQMainPanelUI"),
         )
       ),
+      
+      
+      # Hydrology Tab UI ----
+      tabItem(
+        tabName = "Hydro",
+        tags$style(HTML("
+          #Performance * {
+            font-size: 18px; /* Adjust the size as needed */
+          }
+           #validation_message {
+            color: red;
+            font-size: 25px;
+          }
+        ")),
+        ## Hydrology Sidebar
+        sidebarLayout(
+          sidebarPanel(
+            useShinyjs(),
+            h4("Instructions for Use:"),
+            tags$ol(
+              tags$li("Download csv template."),
+              tags$li(
+                "Populate template with BMP monitoring data.",
+                tags$ol(
+                  type = "a",
+                  tags$li("Data must be event mean concentrations (EMCs) from paired influent-effluent sampling."),
+                  tags$li("BMPs and/or specific events with full-capture (i.e., no effluent runoff) are treated as effluent EMC equals 0. Influent EMCs from full-capture events are still required."),
+                  tags$li("All EMC data must be from the same pollutant type with consistent units (e.g., TSS in mg/L)."),
+                  tags$li("Data limit is 5Mb.")
+                )
+              ),
+              tags$li("Upload data template to generate the Performance Index Plot, Score, and Summary Table."),
+              tags$li(
+                "Identify a relevant threshold for the pollutant of interest.",
+                tags$ol(
+                  type = "a",
+                  tags$li("Units must be consistent with the data template.")
+                )
+              ),
+              tags$li(
+                "Interpret BMP Performance from Index Score - is the BMP working according to expectations?",
+                tags$ol(
+                  type = "a",
+                  tags$li("Recommended data queries and suggested remedial actions can be found in the project manuscript.")
+                )
+              ),
+              tags$li(
+                "Optional:",
+                tags$ol(
+                  type = "a",
+                  tags$li("Download Performance Index Plot, Score, and Summary Table."),
+                  tags$li("Adjust threshold to see how Performance Index changes."),
+                  tags$li("Upload new data to see how Performance Index varies across pollutant class and BMP types.")
+                )
+              )
+            ),
+            ## Hydrology Input Widgets, etc ----
+            downloadButton("downloadHydroData", "Download CSV Template"),
+            fileInput("hydrofile", "Upload CSV File", accept = c(".csv")),
+            numericInput("designstormdepth", "Design Storm Depth (Liters)", value = 1, min = 0, step = 0.1),
+            numericInput("designvolume", "Design Volume (Liters)", value = 1, min = 0, step = 0.1),
+            width = 6
+          ),
+          ## Hydrology Main Panel ----
+          uiOutput("HydroMainPanelUI"),
+        )
+      ),
+      # Contact Tab ----
       tabItem(
         tabName = "Contact",
         h1("Contact Us", align = "center"),
@@ -401,22 +479,24 @@ ui <- dashboardPage(
 
 
 
-# Server
+# Server ----
 server <- function(input, output, session) {
   
+  ## EMC Calculator Link ----
   observeEvent(input$emc_link, {
     shinyjs::runjs('window.open("https://sccwrp.shinyapps.io/FWC_EMC_Calculator/", "_blank");')
   })
   
   valid_input <- reactiveVal(TRUE)
   
-  # Observe the text input for real-time validation
-
+  
+  ## WQ Tab ----
+  ### Check Data ----
   observe({
-    # Validation messages
+    #### Validation messages ----
     messages <- c()
     
-    # Validate pollutant_name
+    #### Validate pollutant_name ----
     if (nchar(input$pollutant_name) > 30) {
       messages <- c(messages, "Pollutant Name exceeds the 30-character limit.")
       shinyFeedback::showFeedbackDanger("pollutant_name", "Input exceeds the 30-character limit.")
@@ -427,7 +507,7 @@ server <- function(input, output, session) {
       shinyFeedback::hideFeedback("pollutant_name")
     }
     
-    # Validate threshold
+    #### Validate threshold ----
     if (!is.null(input$threshold) && grepl("\\.\\d{2,}", as.character(input$threshold))) {
       messages <- c(messages, "Threshold must have at most one decimal place.")
       shinyFeedback::showFeedbackDanger("threshold", "Input must have at most one decimal place.")
@@ -435,7 +515,7 @@ server <- function(input, output, session) {
       shinyFeedback::hideFeedback("threshold")
     }
     
-    # Update the validation message
+    #### Update the validation message ----
     if (length(messages) > 0) {
       valid_input(FALSE)
       output$validation_message <- renderText(paste(messages, collapse = "\n"))
@@ -445,17 +525,20 @@ server <- function(input, output, session) {
     }
   })
   
-  
-  
-  
-  observeEvent(input$file, {
- 
-    processed_data <- reactiveVal(NULL) # Reset processed_data to NULL on file change
-  
+  ### Set Data Uploaded Bool Variable ----
+  output$wqDataUploaded <- reactive({
+    !is.null(input$wqfile$datapath)
   })
   
-  # Conditionally render the mainPanel based on the value of 'threshold'
-  output$mainPanelUI <- renderUI({
+  
+  ### WQ file reset ----
+  observeEvent(input$wqfile, {
+    processed_wqdata <- reactiveVal(NULL) # Reset processed_data to NULL on file change
+  })
+  
+  ### Conditionally render WQ Main Panel ----
+  # (based on the value of 'threshold')
+  output$WQMainPanelUI <- renderUI({
     req(valid_input()) # Ensure input is valid
     # Check if threshold is NULL, negative, or empty
     if (is.null(input$threshold) || input$threshold == "" || input$threshold <= 0 || is.na(input$threshold)) {
@@ -466,7 +549,7 @@ server <- function(input, output, session) {
         fluidRow(
           column(12,
                  conditionalPanel(
-                   condition = "output.dataUploaded == true", 
+                   condition = "output.wqDataUploaded == true", 
                    h4("Performance Index Plot"),
                    downloadButton("downloadPlot", "Download Plot"),
                    actionButton("read_me", "Read Me", class = "btn-info")
@@ -477,7 +560,7 @@ server <- function(input, output, session) {
         fluidRow(
           column(12,
                  conditionalPanel(
-                   condition = "output.dataUploaded == true",
+                   condition = "output.wqDataUploaded == true",
                    h4("Performance Index Score"),
                    h5("The graphic is not available for download")
                    #uiOutput("downloadButtonUI")
@@ -490,7 +573,7 @@ server <- function(input, output, session) {
         fluidRow(
           column(12,
                  conditionalPanel(
-                   condition = "output.dataUploaded == true",
+                   condition = "output.wqDataUploaded == true",
                    h4("Performance Index Summary Table"),
                    downloadButton("downloadTable", "Download Summary Table")
                  ),
@@ -502,36 +585,30 @@ server <- function(input, output, session) {
       )}
   })
   
-  # buttonText <- reactiveValues(text = "Download Gauge (might take up to a minute)")
-  # output$downloadButtonUI <- renderUI({
-  #   downloadButton("downloadGauge", label = buttonText$text)
-  # })
+  ### output options ----
+  outputOptions(output, "wqDataUploaded", suspendWhenHidden = FALSE)
   
-  # Define required columns
-  required_columns <- c("influent", "effluent")
-  
-  output$dataUploaded <- reactive({
-    !is.null(input$file$datapath)
-  })
-  
-  outputOptions(output, "dataUploaded", suspendWhenHidden = FALSE)
-  
+  ### Process WQ Data ----
   # Reactive to load and process the data when file is uploaded or threshold is updated
-  processed_data <- reactive({
-    req(input$file)
+  processed_wqdata <- reactive({
+    
+    # Define required columns
+    required_columns <- c("influent", "effluent")
+    
+    req(input$wqfile)
     req(input$threshold > 0)
-
+    
     
     # Load the CSV data
     df <- tryCatch(
       {
-        read.csv(input$file$datapath)
+        read.csv(input$wqfile$datapath)
       },
       error = function(e) {
         NULL  # Return NULL if there's an error reading the file
       }
     )
- 
+    
     # Validate if the file was read successfully (not NULL) and is not empty
     validate(
       need(!is.null(df), "The uploaded file is either empty or invalid. Please upload a valid CSV file."),
@@ -571,14 +648,16 @@ server <- function(input, output, session) {
       ) %>%
       mutate(quadrant2 = factor(quadrant2, levels = c("Success", "Excess", "Marginal", "Insufficient", "Failure")))
     
-
-    
     df
     
   })
   
+  
+  
+  
+  ### WQ Main Plot ----
   output$effinf_output <- renderUI({
-    if (is.null(input$file$datapath)) {
+    if (is.null(input$wqfile$datapath)) {
       tags$img(src = "placeholder-eff-plot.png", height = "95%", width = "95%")
     } else {
       plotly::plotlyOutput("effinf_plot")
@@ -586,11 +665,9 @@ server <- function(input, output, session) {
   })
   
   # Plot output
-  
-  
   effinf_plot <- reactive({
-   
-    df <- processed_data() %>%
+    
+    df <- processed_wqdata() %>%
       mutate(
         `inf/thresh` = round(`inf/thresh`, 1), # Round to 1 decimal place
         `eff/thresh` = round(`eff/thresh`, 1)  # Round to 1 decimal place
@@ -638,8 +715,9 @@ server <- function(input, output, session) {
         panel.background = element_rect(fill = "white", color = "black")
       )
     
-  }) |> bindEvent(input$threshold, input$pollutant_name, input$file)
+  }) |> bindEvent(input$threshold, input$pollutant_name, input$wqfile)
   
+  # render the plot
   output$effinf_plot <- plotly::renderPlotly({
     ggplotly(effinf_plot())  %>%
       layout(
@@ -652,13 +730,18 @@ server <- function(input, output, session) {
           dtick = 0.1  # Adjust dtick for finer control on y-axis
         )
       )
-  }) |> bindEvent(input$file, input$threshold, input$pollutant_name)
+  }) |> bindEvent(input$wqfile, input$threshold, input$pollutant_name)
+  
+  
+  
+  
+  ### WQ Gauge ----
   
   # Gauge output
   # Reactive expression for the gauge plot
   gauge_plot <- reactive({
-    req(processed_data())
-    df <- processed_data()
+    req(processed_wqdata())
+    df <- processed_wqdata()
     scr <- get.composite.score(df, performance_col = 'quadrant2')
     get.composite.gauge(scr)  # Return the gauge plotly object
   })
@@ -670,7 +753,7 @@ server <- function(input, output, session) {
   })
   
   summary_dat <- reactive({
-    summary_dat <- summary.table(processed_data(), threshold = input$threshold, performance_col = 'quadrant2')
+    summary_dat <- summary.table(processed_wqdata(), threshold = input$threshold, performance_col = 'quadrant2')
     summary_dat <- summary_dat %>%
       dplyr::rename(
         `Index Score` = `Performance.Index`,  
@@ -682,7 +765,7 @@ server <- function(input, output, session) {
       )
     summary_dat
   })
-  
+  # Make the actual gauge
   output$gauge.table <- DT::renderDataTable({
     dat <- summary_dat()
     # Render the datatable with centered text alignment
@@ -707,7 +790,9 @@ server <- function(input, output, session) {
       )
   })
   
-  # Download static sample data
+  
+  
+  ### WQ Download static sample data ----
   output$downloadData <- downloadHandler(
     filename = function() {
       "sample_influent_effluent.csv"
@@ -717,6 +802,8 @@ server <- function(input, output, session) {
     }
   )
   
+  
+  ### WQ Download Plot ----
   # Download handler for the plot
   output$downloadPlot <- downloadHandler(
     filename = function() {
@@ -728,6 +815,7 @@ server <- function(input, output, session) {
     }
   )
   
+  ### WQ Download Gauge ----
   output$downloadGauge <- downloadHandler(
     filename = function() {
       "Performance_Index_Gauge.png"
@@ -751,7 +839,7 @@ server <- function(input, output, session) {
     }
   )
   
-  
+  ### WQ Download Table ----
   output$downloadTable <- downloadHandler(
     filename = function() {
       "Performance_Index_Summary.csv"
@@ -760,7 +848,237 @@ server <- function(input, output, session) {
       write.csv(summary_dat(), file, row.names = FALSE)
     }
   )
-  # Observe Read Me button click to show modal
+  
+  
+  # ----------------------------------------------------------------------------------------------------------------------------------- #
+  
+  
+  ## Hydro Tab ----
+  
+  ### Set Hydro Data Uploaded Bool Variable ----
+  output$hydroDataUploaded <- reactive({
+    !is.null(input$hydrofile$datapath)
+  })
+  
+  ### Hydro file reset ----
+  observeEvent(input$hydrofile, {
+    processed_hydrodata <- reactiveVal(NULL) # Reset processed_data to NULL on file change
+  })
+  
+  
+  ### Conditionally render the Hydro mainPanel ----
+  # (based on the designstormdepth, etc)
+  output$HydroMainPanelUI <- renderUI({
+    
+    # Check if threshold is NULL, negative, or empty
+    if (is.null(input$designstormdepth) || input$designstormdepth == "" || input$designvolume <= 0 || is.na(input$designvolume)) {
+      return(NULL)  # Hide mainPanel by returning NULL
+    } else {
+      # Show mainPanel if threshold is valid
+      mainPanel(
+        fluidRow(
+          column(12,
+                 conditionalPanel(
+                   condition = "output.hydroDataUploaded == true", 
+                   h4("Performance Index Plot"),
+                   downloadButton("downloadPlot", "Download Plot"),
+                   actionButton("read_me", "Read Me", class = "btn-info")
+                 ),
+                 shinycssloaders::withSpinner(uiOutput("effinf_output"))
+          )
+        ),
+        fluidRow(
+          column(12,
+                 conditionalPanel(
+                   condition = "output.hydroDataUploaded == true",
+                   h4("Performance Index Score"),
+                   h5("The graphic is not available for download")
+                   #uiOutput("downloadButtonUI")
+                 ),
+                 div(style = "display: flex; justify-content: center;",
+                     plotly::plotlyOutput("score.gauge", width = "700px", height = "300px")
+                 )
+          )
+        ),
+        fluidRow(
+          column(12,
+                 conditionalPanel(
+                   condition = "output.hydroDataUploaded == true",
+                   h4("Performance Index Summary Table"),
+                   downloadButton("downloadTable", "Download Summary Table")
+                 ),
+                 DT::dataTableOutput("gauge.table")
+          )
+        ),
+        width = 6
+        
+      )}
+  })
+  
+
+  
+  
+  
+
+  
+  ### Reactive to load and process the data when file is uploaded or threshold is updated ----
+  processed_hydrodata <- reactive({
+    
+    #### Define required columns ----
+    required_columns <- c("inflow","outflow","bypass","precipitationdepth")
+    
+    req(input$hyrofile)
+    
+    ##### Load the CSV data ----
+    df <- tryCatch(
+      {
+        read.csv(input$hydrofile$datapath)
+      },
+      error = function(e) {
+        NULL  # Return NULL if there's an error reading the file
+      }
+    )
+    
+    #### Validate if the file was read successfully (not NULL) and is not empty ----
+    validate(
+      need(!is.null(df), "The uploaded file is either empty or invalid. Please upload a valid CSV file."),
+      need(nrow(df) > 0, "The uploaded file is either empty or invalid. Please upload a valid CSV file.")
+    )
+    
+    #### Use Shiny's validate() and need() to check if required columns are present ----
+    validate(
+      need(all(required_columns %in% colnames(df)),
+           paste("The following required columns are missing:", 
+                 paste(setdiff(required_columns, colnames(df)), collapse = ", "))
+      )
+    )
+    
+    validate(
+      need(all(!is.na(df$inflow) & !is.null(df$inflow)), "'inflow' column contains NA or NULL values. Please provide valid data."),
+      need(all(!is.na(df$outflow) & !is.null(df$outflow)), "'outflow' column contains NA or NULL values. Please provide valid data."),
+      need(is.numeric(df$inflow), "'inflow' column contains non-numeric values. Please ensure all values are numeric."),
+      need(is.numeric(df$outflow), "'outflow' column contains non-numeric values. Please ensure all values are numeric.")
+    )
+    
+    
+    #### Prep the data and get the quadrants ----
+    df <- df %>% 
+      filter(
+        !is.na(precipitationdepth),
+        !is.na(inflow),
+        !is.na(outflow)
+      ) %>%
+      mutate(
+        # if there are any bypass volume values, then there is a bypass
+        `Bypass occurred` = if_else(
+          !( (is.na(bypass)) | (bypass == 0) ), 
+          "Bypass",
+          "No Bypass"
+        ),
+        # use round2 in global.R to always round >= 5 up, <5 down
+        # ratios are unitless, round them all to 2 places
+        `precip/design` = round2(precipitationdepth/designstormdepth, 2),
+        `volreduc/design` = round2((inflow - outflow)/firstdesignvolume, 2),
+        quadrant = case_when(
+          # top left quadrant or negative volume reduction, not including exactly on horizontal line
+          ((`volreduc/design` > (1 + UNCERTAINTY_BUFFER)) & (`precip/design` < 1)) | ((inflow - outflow) < 0) ~ "Check Data",
+          # top right quadrant, including exactly on vertical line
+          (`volreduc/design` > (1 + UNCERTAINTY_BUFFER)) & (`precip/design` >= 1) ~ "Excess", 
+          # bottom right quadrant, including exactly on vertical line
+          (`volreduc/design` < (1 - UNCERTAINTY_BUFFER) ) & (`precip/design` >= 1) ~ "Failure",
+          # bottom left quadrant, not including exactly on either line, but with a bypass
+          ((`volreduc/design` < (1 - UNCERTAINTY_BUFFER)) & (`precip/design` < 1)) & `Bypass occurred` == 'Bypass' ~ "Small Storm With Bypass",
+          # remaining cases are directly on horizontal lines and section between
+          T ~ "Success"
+        )
+      ) %>% 
+      mutate(quadrant = factor(quadrant, levels = c("Success", "Excess", "Check Data", "Failure", "Small Storm With Bypass")))
+    df
+  })
+  
+  
+  ### Hydro Main Plot ----
+  output$effinf_output <- renderUI({
+    if (is.null(input$hydrofile$datapath)) {
+      tags$img(src = "placeholder-eff-plot.png", height = "95%", width = "95%")
+    } else {
+      plotly::plotlyOutput("hydroplot")
+    }
+  })
+  
+  # Plot output
+  hydroplot <- reactive({
+      
+    # find axis limits and widths between ticks. since plot is square, use one max value
+    max_plot_vals <- max(c(dat$`precip/design`, dat$`volreduc/design`), na.rm = TRUE)
+    plot_width <- ceiling(max_plot_vals) / 5
+    
+    plt <- processed_hydrodata() %>% 
+      ggplot(aes(`precip/design`, `volreduc/design`)) +
+        # data points
+        geom_point(aes(colour = quadrant), size = global_point_size) +
+        # vertical threshold lines
+        geom_segment(x = 1, y = -Inf, xend = 1, yend = 0.8, linetype = "dashed", linewidth = 1) +
+        geom_segment(x = 1, y = Inf, xend = 1, yend = 1.2, linetype = "dashed", linewidth = 1) +
+        # horizontal uncertainty lines
+        geom_hline(yintercept = 1 + UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
+        geom_hline(yintercept = 1 - UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
+        # customize the plot's theming
+        scale_shape_manual(values = bypass_shapes, guide = guide_legend(order = 2)) +
+        scale_colour_manual(values = designplot_colors, labels = ~stringr::str_wrap(.x, width = 17)) +
+        scale_x_continuous(
+          limits = c(0, max(c(max_plot_vals, 1))), 
+          labels = format_axes(1), 
+          breaks = scales::breaks_width(plot_width)
+        ) +
+        scale_y_continuous(
+          limits = c(0, max(c(max_plot_vals, 1))), 
+          labels = format_axes(1), 
+          breaks = scales::breaks_width(plot_width)
+        ) +
+        labs(
+          x = expression(paste(frac(`Precipitation Depth`, `Design Storm Depth`))), 
+          y = expression(paste(frac(`Volume Retained`, `Design Volume`))), 
+          colour = "Performance"
+        ) +
+        theme(
+          legend.position = 'bottom',
+          legend.margin = margin(-5,0,-5,0),
+          legend.box = 'horizontal',
+          legend.box.just = 'top',
+          panel.grid.minor = element_blank()
+        ) +
+        guides(
+          colour = guide_legend(order = 3, nrow = 2, byrow = T, title.position = "top"),
+          shape = guide_legend(order = 2, nrow = 2, title.position = "top"),
+          group = guide_legend(order = 1)
+        )
+      
+    
+  }) |> bindEvent(input$designstormdepth, input$designvolume, input$hydrofile)
+  
+  # render the plot
+  output$hydroplot <- plotly::renderPlotly({
+    ggplotly(hydroplot())  %>%
+      layout(
+        xaxis = list(
+          tickmode = "auto",
+          dtick = 0.1  # Adjust dtick value as per requirement for finer ticks
+        ),
+        yaxis = list(
+          tickmode = "auto",
+          dtick = 0.1  # Adjust dtick for finer control on y-axis
+        )
+      )
+  }) |> bindEvent(input$designstormdepth, input$designvolume, input$hydrofile)
+  
+  
+  
+  
+  
+  # ------------------------------------------------------------------------------------------------------------------------------------ #
+  
+  # Observe Read Me button click to show modal ----
   observeEvent(input$read_me, {
     showModal(modalDialog(
       title = "Instructions",
