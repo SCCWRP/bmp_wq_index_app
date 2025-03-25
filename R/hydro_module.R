@@ -86,13 +86,13 @@ hydro_server <- function(id) {
       plot_width <- ceiling(max_plot_vals) / 5
       
       ggplot(dat, aes(`precip/design`, `volreduc/design`)) +
-        geom_point(aes(colour = quadrant), size = 4) +
+        geom_point(aes(colour = quadrant, shape = quadrant), size = 4) +
         geom_segment(x = 1, y = -Inf, xend = 1, yend = 0.8, linetype = "dashed", linewidth = 1) +
         geom_segment(x = 1, y = Inf, xend = 1, yend = 1.2, linetype = "dashed", linewidth = 1) +
         geom_hline(yintercept = 1 + UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
         geom_hline(yintercept = 1 - UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
-        scale_shape_manual(values = bypass_shapes, guide = guide_legend(order = 2)) +
-        scale_colour_manual(values = designplot_colors, labels = ~stringr::str_wrap(.x, width = 17)) +
+        scale_shape_manual(values = hydro_shapes) +
+        scale_colour_manual(values = designplot_colors) +
         scale_x_continuous(
           limits = c(0, max(c(max_plot_vals, 3))),
           labels = format_axes(1),
@@ -104,9 +104,10 @@ hydro_server <- function(id) {
           breaks = scales::breaks_width(plot_width)
         ) +
         labs(
-          x = "Precipitation Depth / Design Storm Depth",
-          y = "Volume Retained / Design Volume",
-          colour = "Performance"
+          x = expression(paste(frac(`Precipitation Depth`, `Design Storm Depth`))), 
+          y = expression(paste(frac(`Volume Retained`, `Design Volume`))), 
+          colour = "Performance",
+          shape = "Performance"
         ) +
         theme(
           text = element_text(size = 18),
@@ -121,9 +122,8 @@ hydro_server <- function(id) {
           panel.grid.minor = element_blank()
         ) +
         guides(
-          colour = guide_legend(order = 3, nrow = 2, byrow = TRUE, title.position = "top"),
-          shape = guide_legend(order = 2, nrow = 2, title.position = "top"),
-          group = guide_legend(order = 1)
+          colour = guide_legend(override.aes = list(size = 5), nrow = 3, byrow = TRUE),
+          shape = guide_legend(override.aes = list(size = 5), nrow = 3, byrow = TRUE)
         )
     })
     

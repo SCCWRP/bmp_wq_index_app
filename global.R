@@ -57,6 +57,14 @@ hydro_colors <- c(
   "Small Storm With Bypass" = "purple"
 )
 
+hydro_shapes <- c(
+  "Success" = 16,       # Filled Circle
+  "Excess" = 17,        # Filled Triangle
+  "Check Data" = 8,      # Asterisk
+  "Small Storm With Bypass" = 18,   # Filled Diamond
+  "Failure" = 15       # Filled Square
+)
+
 designplot_colors <- c(
   "Success" = "#117733",
   "Excess" = "#0072B2",
