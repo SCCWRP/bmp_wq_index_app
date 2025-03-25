@@ -1,10 +1,10 @@
 # global.R
 
 # Load libraries ----
+library(ggplot2)
 library(shiny)
 library(shinydashboard)
 library(shinyjs)
-library(ggplot2)
 library(dplyr)
 library(DT)
 library(plotly)
