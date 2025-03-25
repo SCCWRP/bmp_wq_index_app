@@ -1,4 +1,4 @@
-# Inports ----
+# Imports ----
 library(shiny)
 library(dplyr)
 library(ggplot2)
@@ -6,6 +6,59 @@ library(DT)
 library(shinydashboard)
 library(plotly)
 library(shinyjs)
+
+
+# Global Settings ----
+global_font_family = "Arial"
+global_point_size = 4
+perf_colors <- c(
+  "Success" = "#117733",   
+  "Excess" = "#0072B2",    
+  "Marginal" = "#d6cf04",  
+  "Insufficient" = "#E69F00",
+  "Failure" = "#661100",   
+  "Comparison BMP Success" = "#117733",     
+  "Comparison BMP Excess" = "#0072B2",      
+  "Comparison BMP Marginal" = "#d6cf04",    
+  "Comparison BMP Insufficient" = "#E69F00",
+  "Comparison BMP Failure" = "#661100"      
+)
+
+
+perf_shapes <- c(
+  "Success" = 16,       # Filled Circle
+  "Excess" = 17,        # Filled Triangle
+  "Marginal" = 18,      # Filled Diamond
+  "Insufficient" = 8,   # Asterisk
+  "Failure" = 15,       # Filled Square
+  "Comparison BMP Success" = 1,        # Hollow Circle
+  "Comparison BMP Excess" = 2,         # Hollow Triangle
+  "Comparison BMP Marginal" = 5,       # Hollow Diamond
+  "Comparison BMP Insufficient" = 4,   # Cross (as a stand-in for hollow asterisk)
+  "Comparison BMP Failure" = 0         # Hollow Square
+)
+
+
+hydro_colors <- c("Success" = "#117733",
+                  "Excess" = "#0072B2",
+                  "Neutral" = "black",
+                  "Failure" = "#661100",
+                  "Small Storm With Bypass"="purple")
+
+designplot_colors <- c(
+  "Success" = "#117733",
+  "Excess" = "#0072B2",
+  "Check Data" = "#ff6f00",
+  "Failure" = "#661100",
+  "Small Storm With Bypass"="purple"
+)
+
+bypass_shapes <- c(
+  "Bypass" = 1,
+  "No Bypass" = 16 
+)
+
+
 
 # CSS ----
 css <- '
@@ -66,6 +119,36 @@ css <- '
       text-indent: -0.5em;
     }
     '
+
+# Helper functions ----
+
+# no data ggplot object
+blank_plot <- ggplot(data.frame(x= 0.5, y = 0.5), aes(x = x, y = y)) + 
+  geom_text(label = "No Data", size = 24) +
+  theme(
+    axis.title = element_blank(), 
+    axis.text = element_blank(), 
+    axis.ticks = element_blank(), 
+    panel.grid = element_blank()
+  )
+
+# plot axes format function, force 1 decimal place on the axes tick labels
+format_axes <- function(decimals) {
+  function(x) format(x, nsmall = decimals, scientific = FALSE, digits = 1)
+}
+
+# rounding function to override R's default round-to-even behavior
+# round up for >= 5, round down for < 5
+round2 = function(x, digits) {
+  posneg = sign(x)
+  z = abs(x)*10^digits
+  z = z + 0.5 + sqrt(.Machine$double.eps)
+  z = trunc(z)
+  z = z/10^digits
+  z*posneg
+}
+
+
 # UI ----
 ui <- dashboardPage(
   ## Dashboard Header ----
@@ -855,6 +938,10 @@ server <- function(input, output, session) {
   
   ## Hydro Tab ----
   
+  ### Uncertainty Buffer Global Variable for Hydrology ----
+  UNCERTAINTY_BUFFER <- 0.2
+  
+  
   ### Set Hydro Data Uploaded Bool Variable ----
   output$hydroDataUploaded <- reactive({
     !is.null(input$hydrofile$datapath)
@@ -881,10 +968,10 @@ server <- function(input, output, session) {
                  conditionalPanel(
                    condition = "output.hydroDataUploaded == true", 
                    h4("Performance Index Plot"),
-                   downloadButton("downloadPlot", "Download Plot"),
+                   downloadButton("downloadHydroPlot", "Download Plot"),
                    actionButton("read_me", "Read Me", class = "btn-info")
                  ),
-                 shinycssloaders::withSpinner(uiOutput("effinf_output"))
+                 shinycssloaders::withSpinner(uiOutput("hydro_output"))
           )
         ),
         fluidRow(
@@ -894,10 +981,7 @@ server <- function(input, output, session) {
                    h4("Performance Index Score"),
                    h5("The graphic is not available for download")
                    #uiOutput("downloadButtonUI")
-                 ),
-                 div(style = "display: flex; justify-content: center;",
-                     plotly::plotlyOutput("score.gauge", width = "700px", height = "300px")
-                 )
+                 ), plotly::plotlyOutput("hydro.score.gauge", width = "400px", height = "200px")
           )
         ),
         fluidRow(
@@ -905,9 +989,9 @@ server <- function(input, output, session) {
                  conditionalPanel(
                    condition = "output.hydroDataUploaded == true",
                    h4("Performance Index Summary Table"),
-                   downloadButton("downloadTable", "Download Summary Table")
+                   downloadButton("downloadHydroTable", "Download Summary Table")
                  ),
-                 DT::dataTableOutput("gauge.table")
+                 DT::dataTableOutput("hydro.gauge.table")
           )
         ),
         width = 6
@@ -927,7 +1011,7 @@ server <- function(input, output, session) {
     #### Define required columns ----
     required_columns <- c("inflow","outflow","bypass","precipitationdepth")
     
-    req(input$hyrofile)
+    req(input$hydrofile)
     
     ##### Load the CSV data ----
     df <- tryCatch(
@@ -977,8 +1061,8 @@ server <- function(input, output, session) {
         ),
         # use round2 in global.R to always round >= 5 up, <5 down
         # ratios are unitless, round them all to 2 places
-        `precip/design` = round2(precipitationdepth/designstormdepth, 2),
-        `volreduc/design` = round2((inflow - outflow)/firstdesignvolume, 2),
+        `precip/design` = round2(precipitationdepth/input$designstormdepth, 2),
+        `volreduc/design` = round2((inflow - outflow)/input$designvolume, 2),
         quadrant = case_when(
           # top left quadrant or negative volume reduction, not including exactly on horizontal line
           ((`volreduc/design` > (1 + UNCERTAINTY_BUFFER)) & (`precip/design` < 1)) | ((inflow - outflow) < 0) ~ "Check Data",
@@ -990,87 +1074,167 @@ server <- function(input, output, session) {
           ((`volreduc/design` < (1 - UNCERTAINTY_BUFFER)) & (`precip/design` < 1)) & `Bypass occurred` == 'Bypass' ~ "Small Storm With Bypass",
           # remaining cases are directly on horizontal lines and section between
           T ~ "Success"
-        )
+        ),
+        bypass_fraction = bypass / (bypass + inflow)
       ) %>% 
       mutate(quadrant = factor(quadrant, levels = c("Success", "Excess", "Check Data", "Failure", "Small Storm With Bypass")))
+    
+    # return
     df
   })
   
   
   ### Hydro Main Plot ----
-  output$effinf_output <- renderUI({
+  output$hydro_output <- renderUI({
     if (is.null(input$hydrofile$datapath)) {
-      tags$img(src = "placeholder-eff-plot.png", height = "95%", width = "95%")
+      tags$img(src = "placeholder-hydro-plot.png", height = "95%", width = "95%")
     } else {
-      plotly::plotlyOutput("hydroplot")
+      plotOutput("hydroplot")
     }
   })
   
-  # Plot output
-  hydroplot <- reactive({
-      
+  #### Render Hydrology Plot ---
+  output$hydroplot <- renderPlot({
+    dat <- processed_hydrodata()
+    
     # find axis limits and widths between ticks. since plot is square, use one max value
     max_plot_vals <- max(c(dat$`precip/design`, dat$`volreduc/design`), na.rm = TRUE)
     plot_width <- ceiling(max_plot_vals) / 5
     
-    plt <- processed_hydrodata() %>% 
+    plt <- dat %>% 
       ggplot(aes(`precip/design`, `volreduc/design`)) +
-        # data points
-        geom_point(aes(colour = quadrant), size = global_point_size) +
-        # vertical threshold lines
-        geom_segment(x = 1, y = -Inf, xend = 1, yend = 0.8, linetype = "dashed", linewidth = 1) +
-        geom_segment(x = 1, y = Inf, xend = 1, yend = 1.2, linetype = "dashed", linewidth = 1) +
-        # horizontal uncertainty lines
-        geom_hline(yintercept = 1 + UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
-        geom_hline(yintercept = 1 - UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
-        # customize the plot's theming
-        scale_shape_manual(values = bypass_shapes, guide = guide_legend(order = 2)) +
-        scale_colour_manual(values = designplot_colors, labels = ~stringr::str_wrap(.x, width = 17)) +
-        scale_x_continuous(
-          limits = c(0, max(c(max_plot_vals, 1))), 
-          labels = format_axes(1), 
-          breaks = scales::breaks_width(plot_width)
-        ) +
-        scale_y_continuous(
-          limits = c(0, max(c(max_plot_vals, 1))), 
-          labels = format_axes(1), 
-          breaks = scales::breaks_width(plot_width)
-        ) +
-        labs(
-          x = expression(paste(frac(`Precipitation Depth`, `Design Storm Depth`))), 
-          y = expression(paste(frac(`Volume Retained`, `Design Volume`))), 
-          colour = "Performance"
-        ) +
-        theme(
-          legend.position = 'bottom',
-          legend.margin = margin(-5,0,-5,0),
-          legend.box = 'horizontal',
-          legend.box.just = 'top',
-          panel.grid.minor = element_blank()
-        ) +
-        guides(
-          colour = guide_legend(order = 3, nrow = 2, byrow = T, title.position = "top"),
-          shape = guide_legend(order = 2, nrow = 2, title.position = "top"),
-          group = guide_legend(order = 1)
-        )
-      
+      # data points
+      geom_point(aes(colour = quadrant), size = global_point_size) +
+      # vertical threshold lines
+      geom_segment(x = 1, y = -Inf, xend = 1, yend = 0.8, linetype = "dashed", linewidth = 1) +
+      geom_segment(x = 1, y = Inf, xend = 1, yend = 1.2, linetype = "dashed", linewidth = 1) +
+      # horizontal uncertainty lines
+      geom_hline(yintercept = 1 + UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
+      geom_hline(yintercept = 1 - UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
+      # customize the plot's theming
+      scale_shape_manual(values = bypass_shapes, guide = guide_legend(order = 2)) +
+      scale_colour_manual(values = designplot_colors, labels = ~stringr::str_wrap(.x, width = 17)) +
+      scale_x_continuous(
+        limits = c(0, max(c(max_plot_vals, 3))), 
+        labels = format_axes(1), 
+        breaks = scales::breaks_width(plot_width)
+      ) +
+      scale_y_continuous(
+        limits = c(0, max(c(max_plot_vals, 3))), 
+        labels = format_axes(1), 
+        breaks = scales::breaks_width(plot_width)
+      ) +
+      labs(
+        x = "Precipitation Depth / Design Storm Depth",
+        y = "Volume Retained / Design Volume",
+        colour = "Performance"
+      ) +
+      theme(
+        text = element_text(size = 18),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16),
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 13),
+        legend.position = 'bottom',
+        legend.margin = margin(-5,0,-5,0),
+        legend.box = 'horizontal',
+        legend.box.just = 'top',
+        panel.grid.minor = element_blank()
+      ) +
+      guides(
+        colour = guide_legend(order = 3, nrow = 2, byrow = T, title.position = "top"),
+        shape = guide_legend(order = 2, nrow = 2, title.position = "top"),
+        group = guide_legend(order = 1)
+      )
+    
+    plt
     
   }) |> bindEvent(input$designstormdepth, input$designvolume, input$hydrofile)
   
-  # render the plot
-  output$hydroplot <- plotly::renderPlotly({
-    ggplotly(hydroplot())  %>%
-      layout(
-        xaxis = list(
-          tickmode = "auto",
-          dtick = 0.1  # Adjust dtick value as per requirement for finer ticks
-        ),
-        yaxis = list(
-          tickmode = "auto",
-          dtick = 0.1  # Adjust dtick for finer control on y-axis
-        )
-      )
-  }) |> bindEvent(input$designstormdepth, input$designvolume, input$hydrofile)
+  
+  ### Hydro Gauge ----
+  output$hydro.score.gauge <- renderPlotly({
+    req(hydrotable())
+    df <- hydrotable()
+    get.composite.hydro.gauge(df)  # Return the gauge plotly object
+  })
+  
+  hydrotable <- reactive({
+    dat <- processed_hydrodata() 
+    
+    dat %>%
+      group_by(quadrant) %>%
+      summarise(
+        Count = n(),
+        `%` = round2(100 * Count/nrow(dat), 2),
+        bypass_fraction_average = round2(mean(bypass_fraction, na.rm = T), 2)
+        
+      ) %>% 
+      rename(Performance = quadrant)
+  })
+  
+  ### Hydro Table ----
+  output$hydro.gauge.table <- renderDT({
+    hydrotable()
+  })
+  
+  
+  ### Hydro Download static sample data ----
+  output$downloadHydroData <- downloadHandler(
+    filename = function() {
+      "sample_hydrology_data.csv"
+    },
+    content = function(file) {
+      file.copy("demo/sample_hydrology_data.csv", file)
+    }
+  )
+  
+  
+  ### Hydro Download Plot ----
+  # Download handler for the plot
+  output$downloadHydroPlot <- downloadHandler(
+    filename = function() {
+      "Hydrology_Performance_Plot.png"
+    },
+    content = function(file) {
+      # Save the plot to the specified file using ggsave
+      ggsave(file, plot = hydroplot(), device = "png", width = 13.33333333333333, height = 7.33333333333333, dpi = 300)
+    }
+  )
+  
+  ### Hydro Download Gauge ----
+  output$downloadHydroGauge <- downloadHandler(
+    filename = function() {
+      "Hydrology_Performance_Gauge.png"
+    },
+    content = function(file) {
+      
+      buttonText$text <- "Downloading..."
+      
+      p <- gauge_plot()  # Get the reactive gauge plot
+      
+      #orca(p, "plot.png")      
+      # Use normalizePath to convert to forward slashes
+      temp_file <- normalizePath(tempfile(fileext = ".png"), winslash = "/")
+      
+      plotly::save_image(p, file = temp_file, format = "png", scale = 3)  # Save the image to temp location
+      file.copy(temp_file, file)  # Copy it to the location needed for download
+      
+      # Reset button text after download completes
+      buttonText$text <- "Download Gauge (might take up to a minute)"
+      
+    }
+  )
+  
+  ### Hydro Download Table ----
+  output$downloadHydroTable <- downloadHandler(
+    filename = function() {
+      "Performance_Index_Summary.csv"
+    },
+    content = function(file) {
+      write.csv(summary_dat(), file, row.names = FALSE)
+    }
+  )
   
   
   
