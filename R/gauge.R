@@ -183,7 +183,7 @@ get.composite.hydro.gauge <- function(df) {
     )
   ) %>%
     plotly::layout(
-      margin=list(l=85, r=100, t=top_offset, b=0)
+      margin = list(l = 85, r = 100, t = 80, b = 40)
     ) %>% 
     plotly::config(
       displayModeBar = FALSE

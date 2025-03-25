@@ -6,6 +6,7 @@ hydro_ui <- function(id) {
   tabItem(
     tabName = "Hydro",
     tags$style(HTML("#Performance * { font-size: 18px; } #validation_message { color: red; font-size: 25px; }")),
+    
     sidebarLayout(
       sidebarPanel(
         useShinyjs(),
@@ -14,8 +15,9 @@ hydro_ui <- function(id) {
         fileInput(ns("hydrofile"), "Upload CSV File", accept = c(".csv")),
         numericInput(ns("designstormdepth"), "Design Storm Depth (Liters)", value = 1, min = 0, step = 0.1),
         numericInput(ns("designvolume"), "Design Volume (Liters)", value = 1, min = 0, step = 0.1),
-        width = 6
+        width = 5
       ),
+      
       mainPanel(
         fluidRow(
           column(12,
@@ -35,7 +37,10 @@ hydro_ui <- function(id) {
                    h4("Performance Index Score"),
                    h5("The graphic is not available for download")
                  ),
-                 plotly::plotlyOutput(ns("hydro.score.gauge"), width = "700px", height = "300px")
+                 div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
+                     plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
+                 
+                 
           )
         ),
         fluidRow(
@@ -53,6 +58,7 @@ hydro_ui <- function(id) {
     )
   )
 }
+
 
 hydro_server <- function(id) {
   moduleServer(id, function(input, output, session) {

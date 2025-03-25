@@ -17,7 +17,7 @@ wq_ui <- function(id) {
         numericInput(ns("threshold"), "Threshold (must be same unit as EMC data)", value = 1, min = 0, step = 0.1),
         verbatimTextOutput(ns("validation_message")),
         tags$img(src = "intepretation-slide.png", height = "100%", width = "100%"),
-        width = 6
+        width = 5
       ),
       mainPanel(
         fluidRow(
