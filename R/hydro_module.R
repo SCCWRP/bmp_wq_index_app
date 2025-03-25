@@ -13,44 +13,13 @@ hydro_ui <- function(id) {
         h4("Instructions for Use:"),
         downloadButton(ns("downloadHydroData"), "Download CSV Template"),
         fileInput(ns("hydrofile"), "Upload CSV File", accept = c(".csv")),
-        numericInput(ns("designstormdepth"), "Design Storm Depth (Liters)", value = 1, min = 0, step = 0.1),
-        numericInput(ns("designvolume"), "Design Volume (Liters)", value = 1, min = 0, step = 0.1),
+        numericInput(ns("designstormdepth"), "Design Storm Depth", value = 0.7, min = 0, step = 0.1),
+        numericInput(ns("designvolume"), "Design Volume", value = 26535, min = 0, step = 0.1),
         width = 5
       ),
       
       mainPanel(
-        fluidRow(
-          conditionalPanel(
-            condition = paste0("input.", ns("hydrofile"), " !== null"),
-            column(12,
-                   h4("Performance Index Plot"),
-                   downloadButton(ns("downloadHydroPlot"), "Download Plot"),
-                   actionButton(ns("read_me"), "Read Me", class = "btn-info"),
-                   shinycssloaders::withSpinner(uiOutput(ns("hydro_output")))
-            )
-          )
-        ),
-        fluidRow(
-          conditionalPanel(
-            condition = paste0("input.", ns("hydrofile"), " !== null"),
-            column(12,
-                   h4("Performance Index Score"),
-                   h5("The graphic is not available for download"),
-                   div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
-                       plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
-            )
-          )
-        ),
-        fluidRow(
-          conditionalPanel(
-            condition = paste0("input.", ns("hydrofile"), " !== null"),
-            column(12,
-                   h4("Performance Index Summary Table"),
-                   downloadButton(ns("downloadHydroTable"), "Download Summary Table"),
-                   DT::dataTableOutput(ns("hydro.gauge.table"))
-            )
-          )
-        ),
+        uiOutput(ns("hydro_ui_blocks")),
         width = 6
       )
       
@@ -82,9 +51,18 @@ hydro_server <- function(id) {
       
       df <- read.csv(input$hydrofile$datapath)
       
+      print("df$inflow")
+      print(df$inflow)
+      print("df$outflow")
+      print(df$outflow)
+      
       df <- df %>%
         filter(!is.na(precipitationdepth), !is.na(inflow), !is.na(outflow)) %>%
         mutate(
+          inflow = as.numeric(inflow),
+          outflow = as.numeric(outflow),
+          bypass = as.numeric(bypass),
+          precipitationdepth = as.numeric(precipitationdepth),
           `Bypass occurred` = if_else(!(is.na(bypass) | bypass == 0), "Bypass", "No Bypass"),
           `precip/design` = round2(precipitationdepth / input$designstormdepth, 2),
           `volreduc/design` = round2((inflow - outflow) / input$designvolume, 2),
@@ -213,5 +191,44 @@ hydro_server <- function(id) {
         footer = modalButton("Close")
       ))
     })
+    
+    output$hydro_ui_blocks <- renderUI({
+      req(input$hydrofile)
+      tagList(
+        fluidRow(
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
+                   h4("Performance Index Plot"),
+                   downloadButton(ns("downloadHydroPlot"), "Download Plot"),
+                   actionButton(ns("read_me"), "Read Me", class = "btn-info"),
+                   shinycssloaders::withSpinner(uiOutput(ns("hydro_output")))
+            )
+          )
+        ),
+        fluidRow(
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
+                   h4("Performance Index Score"),
+                   h5("The graphic is not available for download"),
+                   div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
+                       plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
+            )
+          )
+        ),
+        fluidRow(
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
+                   h4("Performance Index Summary Table"),
+                   downloadButton(ns("downloadHydroTable"), "Download Summary Table"),
+                   DT::dataTableOutput(ns("hydro.gauge.table"))
+            )
+          )
+        )
+      )
+    })
+    
   })
 }
