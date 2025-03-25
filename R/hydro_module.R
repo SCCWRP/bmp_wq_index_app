@@ -51,11 +51,6 @@ hydro_server <- function(id) {
       
       df <- read.csv(input$hydrofile$datapath)
       
-      print("df$inflow")
-      print(df$inflow)
-      print("df$outflow")
-      print(df$outflow)
-      
       df <- df %>%
         filter(!is.na(precipitationdepth), !is.na(inflow), !is.na(outflow)) %>%
         mutate(
@@ -127,13 +122,13 @@ hydro_server <- function(id) {
         )
     })
     
-    output$hydro_output <- renderUI({
-      if (is.null(input$hydrofile$datapath)) {
-        tags$img(src = "placeholder-hydro-plot.png", height = "95%", width = "95%")
-      } else {
-        plotOutput(ns("hydroplot"))
-      }
-    })
+    # output$hydro_output <- renderUI({
+    #   if (is.null(input$hydrofile$datapath)) {
+    #     tags$img(src = "placeholder-hydro-plot.png", height = "95%", width = "95%")
+    #   } else {
+    #     plotOutput(ns("hydroplot"))
+    #   }
+    # })
     
     output$hydroplot <- renderPlot({
       hydroplot()
@@ -193,41 +188,45 @@ hydro_server <- function(id) {
     })
     
     output$hydro_ui_blocks <- renderUI({
-      req(input$hydrofile)
-      tagList(
-        fluidRow(
-          conditionalPanel(
-            condition = paste0("input.", ns("hydrofile"), " !== null"),
-            column(12,
-                   h4("Performance Index Plot"),
-                   downloadButton(ns("downloadHydroPlot"), "Download Plot"),
-                   actionButton(ns("read_me"), "Read Me", class = "btn-info"),
-                   shinycssloaders::withSpinner(uiOutput(ns("hydro_output")))
+      if (is.null(input$hydrofile)) {
+        tags$img(src = "placeholder-hydro-plot.png", height = "95%", width = "95%")
+      } else {
+        # req(input$hydrofile)
+        tagList(
+          fluidRow(
+            conditionalPanel(
+              condition = paste0("input.", ns("hydrofile"), " !== null"),
+              column(12,
+                     h4("Performance Index Plot"),
+                     downloadButton(ns("downloadHydroPlot"), "Download Plot"),
+                     actionButton(ns("read_me"), "Read Me", class = "btn-info"),
+                     shinycssloaders::withSpinner(plotOutput(ns("hydroplot")))
+              )
             )
-          )
-        ),
-        fluidRow(
-          conditionalPanel(
-            condition = paste0("input.", ns("hydrofile"), " !== null"),
-            column(12,
-                   h4("Performance Index Score"),
-                   h5("The graphic is not available for download"),
-                   div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
-                       plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
+          ),
+          fluidRow(
+            conditionalPanel(
+              condition = paste0("input.", ns("hydrofile"), " !== null"),
+              column(12,
+                     h4("Performance Index Score"),
+                     h5("The graphic is not available for download"),
+                     div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
+                         plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
+              )
             )
-          )
-        ),
-        fluidRow(
-          conditionalPanel(
-            condition = paste0("input.", ns("hydrofile"), " !== null"),
-            column(12,
-                   h4("Performance Index Summary Table"),
-                   downloadButton(ns("downloadHydroTable"), "Download Summary Table"),
-                   DT::dataTableOutput(ns("hydro.gauge.table"))
+          ),
+          fluidRow(
+            conditionalPanel(
+              condition = paste0("input.", ns("hydrofile"), " !== null"),
+              column(12,
+                     h4("Performance Index Summary Table"),
+                     downloadButton(ns("downloadHydroTable"), "Download Summary Table"),
+                     DT::dataTableOutput(ns("hydro.gauge.table"))
+              )
             )
           )
         )
-      )
+      }
     })
     
   })

@@ -111,13 +111,6 @@ wq_server <- function(id) {
         )
     })
     
-    output$effinf_output <- renderUI({
-      if (is.null(input$wqfile$datapath)) {
-        tags$img(src = "placeholder-eff-plot.png", height = "95%", width = "95%")
-      } else {
-        plotly::plotlyOutput(ns("effinf_plot"))
-      }
-    })
     
     output$effinf_plot <- plotly::renderPlotly({
       ggplotly(effinf_plot())
@@ -139,7 +132,14 @@ wq_server <- function(id) {
     })
     
     output$gauge.table <- DT::renderDataTable({
-      dat <- summary_dat()
+      dat <- summary_dat() %>% 
+        rename(
+          Success = num_success,
+          Excess = num_excess,
+          Marginal = num_marginal,
+          Insufficient = num_insufficient,
+          Failure = num_failure
+        )
       datatable(dat, rownames = FALSE, options = list(dom = 'ft'))
     })
     
@@ -166,33 +166,36 @@ wq_server <- function(id) {
     
     
     output$wq_ui_blocks <- renderUI({
-      req(input$wqfile)
+      if (is.null(input$wqfile)) {
+        tags$img(src = "placeholder-eff-plot.png", height = "95%", width = "95%")
+      } else {
       
-      tagList(
-        fluidRow(
-          column(12,
-                 h4("Performance Index Plot"),
-                 downloadButton(ns("downloadPlot"), "Download Plot"),
-                 actionButton(ns("read_me"), "Read Me", class = "btn-info"),
-                 shinycssloaders::withSpinner(uiOutput(ns("effinf_output")))
-          )
-        ),
-        fluidRow(
-          column(12,
-                 h4("Performance Index Score"),
-                 h5("The graphic is not available for download"),
-                 div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 10px;",
-                     plotly::plotlyOutput(ns("score.gauge"), height = "320px"))
-          )
-        ),
-        fluidRow(
-          column(12,
-                 h4("Performance Index Summary Table"),
-                 downloadButton(ns("downloadTable"), "Download Summary Table"),
-                 DT::dataTableOutput(ns("gauge.table"))
+        tagList(
+          fluidRow(
+            column(12,
+                   h4("Performance Index Plot"),
+                   downloadButton(ns("downloadPlot"), "Download Plot"),
+                   actionButton(ns("read_me"), "Read Me", class = "btn-info"),
+                   shinycssloaders::withSpinner(plotly::plotlyOutput(ns("effinf_plot")))
+            )
+          ),
+          fluidRow(
+            column(12,
+                   h4("Performance Index Score"),
+                   h5("The graphic is not available for download"),
+                   div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 10px;",
+                       plotly::plotlyOutput(ns("score.gauge"), height = "320px"))
+            )
+          ),
+          fluidRow(
+            column(12,
+                   h4("Performance Index Summary Table"),
+                   downloadButton(ns("downloadTable"), "Download Summary Table"),
+                   DT::dataTableOutput(ns("gauge.table"))
+            )
           )
         )
-      )
+      }
     })
     
     
