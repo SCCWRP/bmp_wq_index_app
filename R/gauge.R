@@ -38,8 +38,8 @@ get.composite.score <- function(df, performance_col = 'Performance') {
 get.composite.gauge <- function(composite_score) {
 
   
-  title_text <- glue::glue("Performance Index Score")
-  top_offset <- 28
+  title_text <- "Performance Index"
+  
   plotly::plot_ly(
     height = 300,
     type = "indicator",
@@ -51,14 +51,14 @@ get.composite.gauge <- function(composite_score) {
       ),
       valueformat = ".2f"
     ),
-    # title = list(
-    #   text = title_text,
-    #   font = list(
-    #     size = 23,
-    #     color = "#202020",
-    #     family = "Arial"
-    #   )
-    # ),
+    title = list(
+      text = title_text,
+      font = list(
+        size = 23,
+        color = "#202020",
+        family = "Arial"
+      )
+    ),
     gauge = list(
       borderwidth = 0,
       axis = list(
@@ -81,7 +81,7 @@ get.composite.gauge <- function(composite_score) {
     )
   ) %>%
     plotly::layout(
-      margin=list(l=80, r=100, t=top_offset, b=0)
+      margin = list(l = 85, r = 100, t = 80, b = 40)
     ) %>% 
     plotly::config(
       displayModeBar = FALSE
@@ -137,7 +137,6 @@ get.composite.hydro.gauge <- function(df) {
   # dot product of the category scores with their respective proportions of the data
   composite_score <- signif(tmp$category_score %*% tmp$proportion, 3)
   
-  top_offset <- 28
   title_text <- "Performance Index"
   
   # plotly widget object with formatting

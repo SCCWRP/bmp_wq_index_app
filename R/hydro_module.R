@@ -20,42 +20,43 @@ hydro_ui <- function(id) {
       
       mainPanel(
         fluidRow(
-          column(12,
-                 conditionalPanel(
-                   condition = paste0("output.", ns("hydroDataUploaded")),
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
                    h4("Performance Index Plot"),
                    downloadButton(ns("downloadHydroPlot"), "Download Plot"),
-                   actionButton(ns("read_me"), "Read Me", class = "btn-info")
-                 ),
-                 shinycssloaders::withSpinner(uiOutput(ns("hydro_output")))
+                   actionButton(ns("read_me"), "Read Me", class = "btn-info"),
+                   shinycssloaders::withSpinner(uiOutput(ns("hydro_output")))
+            )
           )
         ),
         fluidRow(
-          column(12,
-                 conditionalPanel(
-                   condition = paste0("output.", ns("hydroDataUploaded")),
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
                    h4("Performance Index Score"),
-                   h5("The graphic is not available for download")
-                 ),
-                 div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
-                     plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
-                 
-                 
+                   h5("The graphic is not available for download"),
+                   div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
+                       plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
+            )
           )
         ),
         fluidRow(
-          column(12,
-                 conditionalPanel(
-                   condition = paste0("output.", ns("hydroDataUploaded")),
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
                    h4("Performance Index Summary Table"),
-                   downloadButton(ns("downloadHydroTable"), "Download Summary Table")
-                 ),
-                 DT::dataTableOutput(ns("hydro.gauge.table"))
+                   downloadButton(ns("downloadHydroTable"), "Download Summary Table"),
+                   DT::dataTableOutput(ns("hydro.gauge.table"))
+            )
           )
         ),
         width = 6
       )
+      
+      
     )
+    
   )
 }
 
@@ -66,7 +67,14 @@ hydro_server <- function(id) {
     
     UNCERTAINTY_BUFFER <- 0.2
     
-    output$hydroDataUploaded <- reactive({ !is.null(input$hydrofile$datapath) })
+    output$hydroDataUploaded <- reactive({ 
+      
+      print("input$hydrofile$datapath")
+      print(input$hydrofile$datapath)
+      
+      !is.null(input$hydrofile$datapath) 
+      
+    })
     outputOptions(output, "hydroDataUploaded", suspendWhenHidden = FALSE)
     
     processed_hydrodata <- reactive({

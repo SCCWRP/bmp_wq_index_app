@@ -17,41 +17,10 @@ wq_ui <- function(id) {
         numericInput(ns("threshold"), "Threshold (must be same unit as EMC data)", value = 1, min = 0, step = 0.1),
         verbatimTextOutput(ns("validation_message")),
         tags$img(src = "intepretation-slide.png", height = "100%", width = "100%"),
-        width = 5
+        width = 6
       ),
       mainPanel(
-        fluidRow(
-          column(12,
-                 conditionalPanel(
-                   condition = paste0("output.", ns("wqDataUploaded")),
-                   h4("Performance Index Plot"),
-                   downloadButton(ns("downloadPlot"), "Download Plot"),
-                   actionButton(ns("read_me"), "Read Me", class = "btn-info")
-                 ),
-                 shinycssloaders::withSpinner(uiOutput(ns("effinf_output")))
-          )
-        ),
-        fluidRow(
-          column(12,
-                 conditionalPanel(
-                   condition = paste0("output.", ns("wqDataUploaded")),
-                   h4("Performance Index Score"),
-                   h5("The graphic is not available for download")
-                 ),
-                 div(style = "display: flex; justify-content: center;",
-                     plotly::plotlyOutput(ns("score.gauge"), width = "700px", height = "300px"))
-          )
-        ),
-        fluidRow(
-          column(12,
-                 conditionalPanel(
-                   condition = paste0("output.", ns("wqDataUploaded")),
-                   h4("Performance Index Summary Table"),
-                   downloadButton(ns("downloadTable"), "Download Summary Table")
-                 ),
-                 DT::dataTableOutput(ns("gauge.table"))
-          )
-        ),
+        uiOutput(ns("wq_ui_blocks")),
         width = 6
       )
     )
@@ -194,5 +163,40 @@ wq_server <- function(id) {
         write.csv(summary_dat(), file, row.names = FALSE)
       }
     )
+    
+    
+    output$wq_ui_blocks <- renderUI({
+      req(input$wqfile)
+      
+      tagList(
+        fluidRow(
+          column(12,
+                 h4("Performance Index Plot"),
+                 downloadButton(ns("downloadPlot"), "Download Plot"),
+                 actionButton(ns("read_me"), "Read Me", class = "btn-info"),
+                 shinycssloaders::withSpinner(uiOutput(ns("effinf_output")))
+          )
+        ),
+        fluidRow(
+          column(12,
+                 h4("Performance Index Score"),
+                 h5("The graphic is not available for download"),
+                 div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 10px;",
+                     plotly::plotlyOutput(ns("score.gauge"), height = "320px"))
+          )
+        ),
+        fluidRow(
+          column(12,
+                 h4("Performance Index Summary Table"),
+                 downloadButton(ns("downloadTable"), "Download Summary Table"),
+                 DT::dataTableOutput(ns("gauge.table"))
+          )
+        )
+      )
+    })
+    
+    
+    
+    
   })
 }
