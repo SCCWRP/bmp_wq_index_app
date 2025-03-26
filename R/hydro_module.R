@@ -227,7 +227,7 @@ hydro_server <- function(id) {
                      actionButton(ns("read_me"), "Read Me", class = "btn-info"),
                      #shinycssloaders::withSpinner(plotOutput(ns("hydroplot")))
                      shinycssloaders::withSpinner(
-                       div(style = "position: relative; width: 100%; padding-bottom: 80%;",
+                       div(style = "position: relative; width: 100%; padding-bottom: 75%;",
                            div(style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
                                plotOutput(ns("hydroplot"), width = "100%", height = "100%")
                            )

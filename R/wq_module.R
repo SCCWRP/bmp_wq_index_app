@@ -136,8 +136,9 @@ wq_server <- function(id) {
     ## Plotly-ify the above graph (I think mainly for the sake of having tooltips)
     ### NOTE it seems to mess up the dashed y = 1 and x = 1 lines that were originally intended to be on the plot
     output$effinf_plot <- plotly::renderPlotly({
-      ggplotly(effinf_plot())
+      ggplotly(effinf_plot()) 
     })
+    
     
     
     ## WQ Gauge  ---------------------------------------------------------------------------------------------------------
@@ -213,7 +214,11 @@ wq_server <- function(id) {
                    h4("Performance Index Plot"),
                    downloadButton(ns("downloadPlot"), "Download Plot"),
                    actionButton(ns("read_me"), "Read Me", class = "btn-info"),
-                   shinycssloaders::withSpinner(plotly::plotlyOutput(ns("effinf_plot")))
+                   #shinycssloaders::withSpinner(plotly::plotlyOutput(ns("effinf_plot")))
+                   shinycssloaders::withSpinner(
+                     plotly::plotlyOutput(ns("effinf_plot"), width = "100%")
+                   )
+                   
             )
           ),
           fluidRow(
