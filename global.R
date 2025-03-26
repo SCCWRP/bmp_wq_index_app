@@ -94,7 +94,7 @@ css <- '
       text-indent:-2em;
     }
     
-    h3, h4 {
+    h2, h3, h4 {
       color:#4679B2
     }
     
@@ -186,17 +186,16 @@ welcome_tab <- tabItem(
                     tags$a(href = "#Overview", "Overview"),
                   ),
                   tags$li(
-                    tags$a(href = "#Framework", "Framework"),
-                    
-                    # tags$ul(
-                    #   class = "toc_list",
-                    #   tags$li(
-                    #     tags$a(href = "#Water_Quality_Performance_Index-Water_Quality_Index_Score", "Water Quality Performance Index Score")
-                    #   )
-                    # )
+                    tags$a(href = "#WQFramework", "WQ Index Framework")
                   ),
                   tags$li(
-                    tags$a(href = "#Scoring", "Scoring"),
+                    tags$a(href = "#WQScoring", "WQ Index Scoring"),
+                  ),
+                  tags$li(
+                    tags$a(href = "#HydroFramework", "Hydrology Framework")
+                  ),
+                  tags$li(
+                    tags$a(href = "#HydroScoring", "Hydrology Scoring")
                   ),
                   tags$li(
                     tags$a(href = "#Acknowledgement", "Acknowledgement")
@@ -206,7 +205,7 @@ welcome_tab <- tabItem(
               ## main overview text ----
               tags$div(
                 style = "text-align: justify",
-                h3("Overview", id = "Overview"),
+                h2("Overview", id = "Overview"),
                 tags$p("The BMP Performance Index is a method to organize and interpret quantitative water quality and 
            hydrologic monitoring data to help answer the questions:"),
                 
@@ -222,7 +221,7 @@ welcome_tab <- tabItem(
                 tags$p("Essential data inputs to apply the Water Quality Performance Index (WQPI) include paired BMP influent-effluent flow-weighted pollutant event mean concentrations, and user-defined thresholds for water quality goals. Multiple pollutants may be evaluated concurrently. The Hydrology Performance Index (HPI) requires field-measured precipitation, paired BMP influent-effluent, and bypass or overflow runoff volumes, as well as design metadata such as the depth of the design storm used to size the BMP and the design runoff capture volume. All data are expected to be checked against all relevant quality assurance and quality control protocols prior to applying it to the Performance Index."),
                 
                 ## Water Quality Section of Overview ----
-                h3("Water Quality Index Framework", id = "Framework"),
+                h2("Water Quality Index Framework", id = "WQFramework"),
                 p(em("Does the BMP help to achieve receiving water quality objectives?", .noWS = "outside")),
                 p("The Water Quality BMP Performance Index applies a user-defined water quality threshold to partition paired influent-effluent pollutant event mean concentration data into five distinct categories. Figure WQ1 illustrates the conceptual design of the Water Quality BMP Performance Index as the relationship between paired influent-effluent data and the user-defined water quality threshold. Normalizing measured event mean concentrations by the water quality threshold benchmarks runoff as “clean” or “dirty,” and enables the user to combine data from multiple studies or BMPs for comparative evaluation."),
                 p("The basic structure and conceptual design of the Performance Index is illustrated through 
@@ -254,11 +253,11 @@ welcome_tab <- tabItem(
                 p("Data points falling on dividing lines are assigned to the more protective category. Data pairs categorized as Marginal or Excess may incorporate relatively more noise or uncertainty associated with detection of low concentrations. A BMP that exports pollutants (effluent concentration exceeds influent concentration) is considered a Failure for any influent concentration unless the water quality threshold is not exceeded (i.e., Marginal). Insufficient BMPs are considered less desirable than Marginal BMPs due to the continued elevated pollutant contribution to the receiving waters; resources should be allocated towards additional treatment before rehabilitating Marginal BMPs. "),
                 tags$figure(
                   style = "text-align: center;",
-                  tags$img(src = "placeholder-eff-plot.png", style = "width:60%; height:60%;"),
+                  tags$img(src = "WQIndexOverviewPlot.jpg", style = "width:60%; height:60%;"),
                   tags$figcaption("Figure WQ2. Water Quality Performance Index Framework")
                 ),
                 
-                h3("Scoring", id = "Scoring"),
+                h3("Water Quality Index Scoring", id = "WQScoring"),
                 p("The categorical outcome introduced above provides a useful determination of whether a BMP is contributing towards achieving downstream receiving water goals, or if corrective actions are needed for a pollutant type, or for tracking performance by individual storm. A key design criterion for the BMP Performance Index is the ability to capture long-term trends in the data, whether as temporal patterns or comparing amongst BMPs (an individual BMP or amongst a type of BMP) or pollutants directly. To this end, managers need a way to distill the narrative behavior of a suite of monitored BMPs into a single value that can be tracked over time or compared between BMP datasets. In other words, a method to collate storm-by-storm categorical outcomes into a single descriptor of performance is of interest."),
                 p("The Water Quality Index “Score” uses a weighted average to evaluate the overall performance, wherein each category has an intrinsic weight (level of importance) associated with the managerial preference of that outcome. The weighted average is the sum of the proportion of data in each category multiplied by the weighting factor of that category as in Equation 1: "),
                 HTML("$$\\begin{equation} S = \\sum_{i=1}^nw_iX_i \\tag{1} \\end{equation}$$") |> withMathJax(),
@@ -285,7 +284,7 @@ welcome_tab <- tabItem(
                     "),
                 tags$figure(
                   style = "text-align: center;",
-                  tags$img(src = "intepretation-slide.png", style = "width:60%; height:60%;"),
+                  tags$img(src = "intepretation-slide.png", style = "width:70%; height:70%;"),
                   tags$figcaption("Figure WQ4. Water Quality Performance Index Score color bar with managerial interpretation of the score. A framework for data queries to investigate the Score more deeply is provided.")
                 ),
                 
@@ -304,6 +303,7 @@ welcome_tab <- tabItem(
                       "),
                 
                 ## Hydrology Section of Overview ----
+                h2("Hydrology Performance Index Framework", id = "HydroFramework"),
                 tags$p(em("Does the BMP capture runoff as-intended according to design assumptions?")),
                 
                 tags$p("The BMP Hydrology Performance Index (HPI) uses the design parameters of the BMP and monitored rainfall and runoff volumes to establish whether the BMP is managing the expected amount of runoff. The HPI interacts with the WQPI in a causal fashion; the water needs to physically enter the BMP to receive treatment.  "),
@@ -316,8 +316,8 @@ welcome_tab <- tabItem(
                 tags$figure(
                   tags$img(src = "FigureH1.png", class = "centerImage", style="height:600px;width:800px"),
                   tags$figcaption(
-                    "Figure H1. BMP Hydrology Performance Index conceptual design illustrated using data from selected bioretention BMPs in the 
-                    <a href=\"https://bmpdatabase.org/\">International Stormwater BMP Database</a>: (a) Should the BMP capture all runoff for the monitored storm, 
+                    "Figure H1. BMP Hydrology Performance Index conceptual design illustrated using data from selected bioretention BMPs in the ",
+                    a(href = "https://bmpdatabase.org/", target = "_blank", "International Stormwater BMP Database", style = "color: #0000EE;", .noWS = "outside"), ": (a) Should the BMP capture all runoff for the monitored storm, 
                     or should bypass/overflow be expected?; (b) Was the total volume captured greater or less than expectations according to the BMP’s design volume?; 
                     (c) A measurement tolerance is acknowledged in the volume retained axis due to measurement uncertainty"
                   )
@@ -331,7 +331,7 @@ welcome_tab <- tabItem(
                   tags$li(strong("Relative to Bypass Fraction (BF)"), " - When the BMP is full, some bypass may occur without cause for concern; e.g., for data points in the top right performance zone. Small storms should not produce bypass as the BMP is not expected to fill (the bottom left performance zone); however, a relatively large volume or duration of bypass measured relative to the inflow might indicate undersized or blocked inlets, poor grading, or additional flow from an unanticipated drainage area. Conversely, a small trickle or very short duration of bypass relative to the inflow is likely not a practical concern. The volume of bypass relative to the inflow volume is therefore an important consideration for small storms only. The ratio is defined herein as the bypass fraction (BF), and is determined as:")
                 ),
                 
-                tags$figure(tags$img(src = "BypassfigureforEq2.JPG", class = "centerImage", style="height:320px;width:366px;")),
+                tags$figure(tags$img(src = "BypassFractionSchematic.jpg", class = "centerImage", style="height:291px;width:346px;")), # exact dimensions of the jpg file
                 
                 tags$p(HTML("$$\\text{BF} = \\frac{V_{\\text{Bypass}}}{V_{\\text{Total}}} \\qquad \\text{Eq. 2}$$")),
                 
@@ -344,7 +344,7 @@ welcome_tab <- tabItem(
                 tags$p(
                   "Data points falling on horizontal dividing lines are considered success, since the dividing lines are introduced to account for measurement uncertainty. Data points falling on vertical dividing lines below the horizontal success band are assigned to the more protective category, in this case it is assigned a failure. Data points falling on the vertical line above the horizontal success band are assigned to the excess category, since the implications for the check data category are specific and unique."),
                 
-                h3("Hydrology Performance Index Score", id="Hydrology_Performance_Index_Score"),
+                h3("Hydrology Performance Index Scoring", id="HydroScoring"),
                 tags$p("The categorical outcome introduced above provides a useful determination of whether a BMP is capturing runoff as intended by design, or if corrective actions are needed. A key design criterion for the BMP Performance Index is the ability to capture long-term trends in the data, whether as temporal patterns or comparing amongst BMPs (an individual BMP or amongst a type of BMP). To this end, managers need a way to distill the narrative behavior of a suite of monitored BMPs into a single value that can be tracked over time or compared between BMP datasets. In other words, a method to collate storm-by-storm categorical outcomes into a single descriptor of performance is of interest."),
                 tags$p("The HPI score uses a weighted average to determine the overall performance, wherein each category has an intrinsic weight (level of importance) associated with the managerial preference of that outcome. The weighted average is the sum of the proportion of data in each category multiplied by the weighting factor of that category as in Equation 3:"),
                 
@@ -413,7 +413,8 @@ welcome_tab <- tabItem(
                 
                 tags$p("Figure H4 illustrates the transition points and how the HPI contributes to decision making for stormwater managers. Additional lines of inquiry are included for technical designers and planners to further investigate the broad management action zones. The HPI score reflects the weighted average across all the BMP site-events available in the dataset. Low scores are associated with the best / most preferred outcomes. Where at least half of the data fall into a single category, the suggested management action reflects the implication of that category (Figure H3)."),
                 tags$figure(
-                  tags$img(src = "Fig5HPIscoreinterpretation.JPG", class = "centerImage"),
+                  style = "text-align: center;",
+                  tags$img(src = "HydroIndexInterpretation.jpg", style = "width:70%; height:70%;"),
                   tags$figcaption("Figure H5. Hydrology Index Management Implications.")
                 ),
                 
@@ -482,9 +483,7 @@ welcome_tab <- tabItem(
                 tags$li("LB Nye, Los Angeles Regional Water Quality Control Board"),
                 tags$li("Bhaskar Joshi, Caltrans")
               )
-            ),
-            br(),
-            br()
+            )
           )   
         )
       )

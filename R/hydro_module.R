@@ -1,8 +1,10 @@
 # R/hydro_module.R
 
+# Hydro UI (module ---------------------------------------------------------------------------------------------------------
 hydro_ui <- function(id) {
   ns <- NS(id)
   
+  ## The Hydro UI is an individual tab item and is rendered in app.R
   tabItem(
     tabName = "Hydro",
     tags$style(HTML("#Performance * { font-size: 18px; } #validation_message { color: red; font-size: 25px; }")),
@@ -32,23 +34,25 @@ hydro_ui <- function(id) {
   )
 }
 
-
+# Hydro Server (module ---------------------------------------------------------------------------------------------------------
 hydro_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    ## Uncertainty Buffer "global" variable ---------------------------------------------------------------------------------------------------------
+    # Uncertainty Buffer is 20% according to Elizabeth
     UNCERTAINTY_BUFFER <- 0.2
     
+    ## HydroDataUploaded Boolean Variable ---------------------------------------------------------------------------------------------------------
+    # Simple Boolean to tell us whether the data has been uploaded or not
+    # Used to conditionally render the plots, etc.
     output$hydroDataUploaded <- reactive({ 
-      
-      print("input$hydrofile$datapath")
-      print(input$hydrofile$datapath)
-      
-      !is.null(input$hydrofile$datapath) 
-      
+      !is.null(input$hydrofile$datapath)
     })
     outputOptions(output, "hydroDataUploaded", suspendWhenHidden = FALSE)
     
+    
+    ## Function that returns the main Hydrology data ---------------------------------------------------------------------------------------------------------
     processed_hydrodata <- reactive({
       req(input$hydrofile)
       
@@ -78,6 +82,9 @@ hydro_server <- function(id) {
       df
     })
     
+    ## Function that generates the main Hydrology plot -----------------------------------------------------------------------------------------
+    # *Variables here that are difficult to tell where they are defined are most likely found in global.R 
+    # (For example, the shapes and colors vectors)
     hydroplot <- reactive({
       dat <- processed_hydrodata()
       max_plot_vals <- max(c(dat$`precip/design`, dat$`volreduc/design`), na.rm = TRUE)
@@ -125,18 +132,16 @@ hydro_server <- function(id) {
         )
     })
     
-    # output$hydro_output <- renderUI({
-    #   if (is.null(input$hydrofile$datapath)) {
-    #     tags$img(src = "placeholder-hydro-plot.png", height = "95%", width = "95%")
-    #   } else {
-    #     plotOutput(ns("hydroplot"))
-    #   }
-    # })
-    
+    # Simply call that above reactive and render the plot
     output$hydroplot <- renderPlot({
       hydroplot()
     })
     
+    
+    
+    
+    ## Generate the hydrology data summary table  ---------------------------------------------------------------------------------------------------------
+    # This one is also used for the gauge
     hydrotable <- reactive({
       dat <- processed_hydrodata()
       dat %>%
@@ -149,14 +154,23 @@ hydro_server <- function(id) {
         rename(Performance = quadrant)
     })
     
+    # Simply call that above function and render it
     output$hydro.gauge.table <- DT::renderDataTable({
       hydrotable()
     })
     
+    
+    ## Hydrology Gauge  ---------------------------------------------------------------------------------------------------------
+    # get.composite.hydro.gauge function definition found in gauge.R
     output$hydro.score.gauge <- renderPlotly({
       get.composite.hydro.gauge(hydrotable())
     })
     
+    
+    
+    
+    ## Download Handlers   ---------------------------------------------------------------------------------------------------------
+    ### Hydrology data download (example/template) ----
     output$downloadHydroData <- downloadHandler(
       filename = function() { "sample_hydrology_data.csv" },
       content = function(file) {
@@ -164,6 +178,7 @@ hydro_server <- function(id) {
       }
     )
     
+    ### Hydrology plot download ----
     output$downloadHydroPlot <- downloadHandler(
       filename = function() { "Hydrology_Performance_Plot.png" },
       content = function(file) {
@@ -171,6 +186,7 @@ hydro_server <- function(id) {
       }
     )
     
+    ### Hydrology summary table download ----
     output$downloadHydroTable <- downloadHandler(
       filename = function() { "Performance_Index_Summary.csv" },
       content = function(file) {
@@ -178,6 +194,8 @@ hydro_server <- function(id) {
       }
     )
     
+    ## README Action button ----
+    # Simple instructions explaining the plot downloads
     observeEvent(input$read_me, {
       showModal(modalDialog(
         title = "Instructions",
@@ -190,11 +208,15 @@ hydro_server <- function(id) {
       ))
     })
     
+    
+    ## Plot/graphs UI ----
+    # This is the UI that gets generated when they upload their data
+    # A scatter plot, gauge, and summary table display on the right side, along with respective download buttons (if applicable)
+    # If no file is uploaded, it will display the example JPG that explains the plot and how to interpret it
     output$hydro_ui_blocks <- renderUI({
       if (is.null(input$hydrofile)) {
-        tags$img(src = "placeholder-hydro-plot.png", height = "95%", width = "95%")
+        tags$img(src = "HydroIndexPlot.jpg", height = "95%", width = "95%")
       } else {
-        # req(input$hydrofile)
         tagList(
           fluidRow(
             conditionalPanel(

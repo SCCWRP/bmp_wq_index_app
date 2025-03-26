@@ -1,7 +1,10 @@
+# R/wq_module.R
 
+# WQ UI (module ---------------------------------------------------------------------------------------------------------
 wq_ui <- function(id) {
   ns <- NS(id)
   
+  ## The WQ UI is an individual tab item and is rendered in app.R
   tabItem(
     tabName = "WQ",
     tags$style(HTML("#Performance * { font-size: 18px; } #validation_message { color: red; font-size: 25px; }")),
@@ -27,16 +30,21 @@ wq_ui <- function(id) {
   )
 }
 
+
+# WQ Server (module ---------------------------------------------------------------------------------------------------------
 wq_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    ## Link to the FWC EMC Calculator app so they can calculate EMC's ----
     observeEvent(input$emc_link, {
       shinyjs::runjs('window.open("https://sccwrp.shinyapps.io/FWC_EMC_Calculator/", "_blank");')
     })
     
-    valid_input <- reactiveVal(TRUE)
     
+    ## Data checks ------------------------------------------------------------------------------------------------------------------------
+    ### Boolean to check whether the data they uploaded is valid or not ----
+    valid_input <- reactiveVal(TRUE)
     observe({
       messages <- c()
       
@@ -59,15 +67,22 @@ wq_server <- function(id) {
       }
     })
     
+    ## Boolean to check whether or not they uploaded any data  ---------------------------------------------------------------------------------------------------------
     output$wqDataUploaded <- reactive({ !is.null(input$wqfile$datapath) })
     outputOptions(output, "wqDataUploaded", suspendWhenHidden = FALSE)
     
+    
+    ## Function that returns the main water quality dataframe that is used for analysis  ---------------------------------------------------------------------------------------------------------
     processed_wqdata <- reactive({
       req(input$wqfile)
       req(input$threshold > 0)
       
       df <- read.csv(input$wqfile$datapath)
       
+      
+      # This is code that has been adapted/copy/pasted over the course of 5-6 years now (its 2025 at the time of this comment)
+      # There are certain reasons why the different iterations of authoring this code resulted in "quadrant2" being the category name
+      # If I change it to something else here, it may break the code in many other places, so I will be leaving it as "quadrant2"
       df <- df %>%
         mutate(`inf/thresh` = influent / input$threshold,
                `eff/thresh` = effluent / input$threshold) %>%
@@ -80,9 +95,15 @@ wq_server <- function(id) {
         )) %>%
         mutate(quadrant2 = factor(quadrant2, levels = c("Success", "Excess", "Marginal", "Insufficient", "Failure")))
       
+      # Return  
       df
+      
     })
     
+    
+    ## Function that makes the main WQ Plot  ---------------------------------------------------------------------------------------------------------
+    # *Variables here that are difficult to tell where they are defined are most likely found in global.R 
+    # (For example, the shapes and colors vectors)
     effinf_plot <- reactive({
       df <- processed_wqdata()
       df <- df %>% mutate(`inf/thresh` = round(`inf/thresh`, 1),
@@ -103,6 +124,7 @@ wq_server <- function(id) {
         scale_color_manual(values = perf_colors) +
         scale_shape_manual(values = perf_shapes) +
         geom_hline(yintercept = 1, linetype = "dashed") +
+        geom_vline(xintercept = 1, linetype = "dashed") +
         geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
         coord_fixed() +
         theme(
@@ -111,11 +133,14 @@ wq_server <- function(id) {
         )
     })
     
-    
+    ## Plotly-ify the above graph (I think mainly for the sake of having tooltips)
+    ### NOTE it seems to mess up the dashed y = 1 and x = 1 lines that were originally intended to be on the plot
     output$effinf_plot <- plotly::renderPlotly({
       ggplotly(effinf_plot())
     })
     
+    
+    ## WQ Gauge  ---------------------------------------------------------------------------------------------------------
     gauge_plot <- reactive({
       req(processed_wqdata())
       df <- processed_wqdata()
@@ -123,14 +148,18 @@ wq_server <- function(id) {
       get.composite.gauge(scr)
     })
     
+    # The gauge is a plotly object
     output$score.gauge <- plotly::renderPlotly({
       gauge_plot()
     })
     
+    
+    ## WQ Index Summary Table  ---------------------------------------------------------------------------------------------------------
     summary_dat <- reactive({
       summary.table(processed_wqdata(), threshold = input$threshold, performance_col = 'quadrant2')
     })
     
+    # Render the summary table 
     output$gauge.table <- DT::renderDataTable({
       dat <- summary_dat() %>% 
         rename(
@@ -143,6 +172,9 @@ wq_server <- function(id) {
       datatable(dat, rownames = FALSE, options = list(dom = 'ft'))
     })
     
+    
+    ## Download Handlers ---------------------------------------------------------------------------------------------------------
+    ### Download template/example data ----
     output$downloadData <- downloadHandler(
       filename = function() { "sample_influent_effluent.csv" },
       content = function(file) {
@@ -150,6 +182,7 @@ wq_server <- function(id) {
       }
     )
     
+    ### plot download button ----
     output$downloadPlot <- downloadHandler(
       filename = function() { "Performance_Index_Plot.png" },
       content = function(file) {
@@ -157,6 +190,7 @@ wq_server <- function(id) {
       }
     )
     
+    ### Download the summary table ----
     output$downloadTable <- downloadHandler(
       filename = function() { "Performance_Index_Summary.csv" },
       content = function(file) {
@@ -164,10 +198,13 @@ wq_server <- function(id) {
       }
     )
     
-    
+    ## Plot/graphs UI ----
+    # This is the UI that gets generated when they upload their data
+    # A scatter plot, gauge, and summary table display on the right side, along with respective download buttons (if applicable)
+    # If no file is uploaded, it will display the example JPG that explains the plot and how to interpret it
     output$wq_ui_blocks <- renderUI({
       if (is.null(input$wqfile)) {
-        tags$img(src = "placeholder-eff-plot.png", height = "95%", width = "95%")
+        tags$img(src = "WQIndexOverviewPlot.jpg", height = "95%", width = "95%")
       } else {
       
         tagList(
