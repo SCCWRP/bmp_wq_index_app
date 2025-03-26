@@ -11,11 +11,14 @@ hydro_ui <- function(id) {
       sidebarPanel(
         useShinyjs(),
         h4("Instructions for Use:"),
+        hydro_instructions, # in global.R
         downloadButton(ns("downloadHydroData"), "Download CSV Template"),
         fileInput(ns("hydrofile"), "Upload CSV File", accept = c(".csv")),
         numericInput(ns("designstormdepth"), "Design Storm Depth", value = 0.7, min = 0, step = 0.1),
         numericInput(ns("designvolume"), "Design Volume", value = 26535, min = 0, step = 0.1),
-        width = 5
+        tags$img(src = "Fig5HPIscoreinterpretation.JPG", height = "100%", width = "100%"),
+        
+        width = 6
       ),
       
       mainPanel(

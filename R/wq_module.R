@@ -9,7 +9,7 @@ wq_ui <- function(id) {
       sidebarPanel(
         useShinyjs(),
         h4("Instructions for Use:"),
-        # instructions list omitted for brevity
+        wq_instructions, # in global.R
         downloadButton(ns("downloadData"), "Download CSV Template"),
         actionButton(ns("emc_link"), "Get help with EMCs"),
         fileInput(ns("wqfile"), "Upload CSV File", accept = c(".csv")),
