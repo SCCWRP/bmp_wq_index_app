@@ -18,7 +18,7 @@ hydro_ui <- function(id) {
         fileInput(ns("hydrofile"), "Upload CSV File", accept = c(".csv")),
         numericInput(ns("designstormdepth"), "Design Storm Depth", value = 0.7, min = 0, step = 0.1),
         numericInput(ns("designvolume"), "Design Volume", value = 26535, min = 0, step = 0.1),
-        tags$img(src = "Fig5HPIscoreinterpretation.JPG", height = "100%", width = "100%"),
+        tags$img(src = "HydroIndexInterpretation.jpg", height = "100%", width = "100%"),
         
         width = 6
       ),
