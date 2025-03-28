@@ -1,6 +1,6 @@
 # global.R
 
-# Load libraries ----
+# Load libraries ---- --------------------------------------------------------------------------------------------------------------------------------------
 library(ggplot2)
 library(shiny)
 library(shinydashboard)
@@ -11,18 +11,18 @@ library(plotly)
 library(glue)
 library(stringr)
 
-# Source helper functions and modules ----
+# Source helper functions and modules ------------------------------------------------------------------------------------------------------------------------
 source("R/utils.R")
 source("R/gauge.R")
 source("R/wq_module.R")
 source("R/hydro_module.R")
 
-# Global UI settings ----
+# Global UI settings ------------------------------------------------------------------------------------------------------------------------------------------
 global_font_family <- "Arial"
 global_point_size <- 4
 UNCERTAINTY_BUFFER <- 0.2
 
-# Plot color and shape settings ----
+# Plot color and shape settings --------------------------------------------------------------------------------------------------------------------------------
 perf_colors <- c(
   "Success" = "#117733",   
   "Excess" = "#0072B2",    
@@ -79,7 +79,7 @@ bypass_shapes <- c(
 )
 
 
-# Welcome tab content ----
+# Welcome tab content ---------------------------------------------------------------------------------------------------------------------------------------------
 welcome_tab <- tabItem(
   tabName = "Welcome",
   tags$head(
@@ -420,7 +420,7 @@ welcome_tab <- tabItem(
   ) # end main-welcome-div
 )
 
-# Contact tab content ----
+# Contact tab content -------------------------------------------------------------------------------------------------------------------------------------------------
 contact_tab <- tabItem(
   tabName = "Contact",
   h1("Contact Us", align = "center"),
@@ -437,7 +437,7 @@ contact_tab <- tabItem(
 )
 
 
-# WQ Tab Instructions ----
+# WQ Tab Instructions ------------------------------------------------------------------------------------------------------------------------------------------------
 wq_instructions <- tags$ol(
   tags$li("Download csv template."),
   tags$li(
@@ -476,7 +476,7 @@ wq_instructions <- tags$ol(
   )
 )
 
-# Hydrology Tab Instructions ----
+# Hydrology Tab Instructions ------------------------------------------------------------------------------------------------------------------------
 hydro_instructions <- tagList(
   tags$ol(
     tags$li("Download csv template."),
