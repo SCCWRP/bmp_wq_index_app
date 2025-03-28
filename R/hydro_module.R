@@ -78,17 +78,35 @@ hydro_server <- function(id) {
           bypass_fraction = bypass / (bypass + inflow)
         ) %>%
         mutate(quadrant = factor(quadrant, levels = c("Success", "Excess", "Check Data", "Failure", "Small Storm With Bypass")))
-      
       df
     })
+    
+    
+    # Commented out for now since I'm trying to have the user have the ability to change the plot scale
+    ### Function that filters the main Hydrology data if the data will throw off the scaling of the graph ------------------------------------------------------------
+    # filtered_hydrodata <- reactive({
+    #   df <- processed_hydrodata()
+    #   max_x <- df$`precip/design` %>% max()
+    #   max_y <- df$`volreduc/design` %>% max()
+    #   
+    # })
     
     ## Function that generates the main Hydrology plot -----------------------------------------------------------------------------------------
     # *Variables here that are difficult to tell where they are defined are most likely found in global.R 
     # (For example, the shapes and colors vectors)
     hydroplot <- reactive({
+      
+      req(getAxisLimit())
+      
       dat <- processed_hydrodata()
-      max_plot_vals <- max(c(dat$`precip/design`, dat$`volreduc/design`), na.rm = TRUE)
-      plot_width <- ceiling(max_plot_vals) / 5
+      
+      #max_plot_vals <- max(c(dat$`precip/design`, dat$`volreduc/design`), na.rm = TRUE)
+      #plot_limit <- max(getAxisLimit(), 3)
+      plot_limit <- getAxisLimit()
+      plot_width <- ifelse(is.na(plot_limit), 1, plot_limit / 5)
+      
+      message(paste("plot_limit =", plot_limit, "plot_width =", plot_width))
+      
       
       ggplot(dat, aes(`precip/design`, `volreduc/design`)) +
         geom_point(aes(colour = quadrant, shape = quadrant), size = 4) +
@@ -99,12 +117,12 @@ hydro_server <- function(id) {
         scale_shape_manual(values = hydro_shapes) +
         scale_colour_manual(values = designplot_colors) +
         scale_x_continuous(
-          limits = c(0, max(c(max_plot_vals, 3))),
+          limits = c(0, plot_limit ),
           labels = format_axes(1),
           breaks = scales::breaks_width(plot_width)
         ) +
         scale_y_continuous(
-          limits = c(0, max(c(max_plot_vals, 3))),
+          limits = c(0, plot_limit ),
           labels = format_axes(1),
           breaks = scales::breaks_width(plot_width)
         ) +
@@ -132,10 +150,52 @@ hydro_server <- function(id) {
         )
     })
     
-    # Simply call that above reactive and render the plot
+    ### Simply call that above reactive and render the plot ----
     output$hydroplot <- renderPlot({
+      req(input$hydrofile, input$axisLimit)  # Ensures file + slider exist
       hydroplot()
     })
+    
+    
+    # Commented out for now since I'm trying to have the user have the ability to change the plot scale
+    # ### Warning message if some data points are omitted from the plot ----
+    # output$hydroPlotWarningMessage <- renderText({
+    #   req(input$hydrofile)
+    #   
+    #   if ( nrow(processed_hydrodata()) > nrow(filtered_hydrodata()) ) {
+    #     HTML("
+    #     <p>
+    #       <strong>Note</strong>: For the sake of maintaining readability of the plot visual, some data points have been omitted from this plot. 
+    #       You may download the data with the button above the graph to view the full dataset
+    #     </p>
+    #     ")
+    #   } else {
+    #     NULL
+    #   }
+    # })
+    
+    getAxisLimit <- reactive({
+      if (is.null(input$axisLimit) || length(input$axisLimit) != 1 || is.na(input$axisLimit)) {
+        return(3)  # fallback
+      }
+      input$axisLimit
+    })
+    
+    
+    
+    ### Observe changes in the data to update the slider input
+    observe({
+      df <- processed_hydrodata()
+      max_val <- ceiling(max(c(df$`precip/design`, df$`volreduc/design`), na.rm = TRUE))
+      max_slider_val <- max(max_val, 3)
+      
+      updateSliderInput(session, "axisLimit",
+                        min = 1,
+                        max = max_slider_val,
+                        value = max_slider_val)
+    })
+    
+    
     
     
     
@@ -232,10 +292,10 @@ hydro_server <- function(id) {
                                plotOutput(ns("hydroplot"), width = "100%", height = "100%")
                            )
                        )
-                     )
-                     
-                     
-                     
+                     ),
+                     sliderInput(ns("axisLimit"), "Set axis limits:",
+                                 min = 0, max = 100, value = 10, step = 1),
+                     textOutput(ns("hydroPlotWarningMessage"))
               )
             )
           ),
