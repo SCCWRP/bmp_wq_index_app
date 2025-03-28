@@ -7,9 +7,8 @@ hydro_ui <- function(id) {
   ## The Hydro UI is an individual tab item and is rendered in app.R
   tabItem(
     tabName = "Hydro",
-    #tags$style(HTML("#Performance * { font-size: 18px; } #validation_message { color: red; font-size: 25px; }")),
     tags$head(
-      includeCSS("www/css/hydrology.css")
+      includeCSS("www/css/plottabs.css")
     ),
     sidebarLayout(
       sidebarPanel(

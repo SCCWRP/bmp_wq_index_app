@@ -7,7 +7,9 @@ wq_ui <- function(id) {
   ## The WQ UI is an individual tab item and is rendered in app.R
   tabItem(
     tabName = "WQ",
-    tags$style(HTML("#Performance * { font-size: 18px; } #validation_message { color: red; font-size: 25px; }")),
+    tags$head(
+      includeCSS("www/css/plottabs.css")
+    ),
     sidebarLayout(
       sidebarPanel(
         useShinyjs(),
