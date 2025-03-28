@@ -7,8 +7,10 @@ hydro_ui <- function(id) {
   ## The Hydro UI is an individual tab item and is rendered in app.R
   tabItem(
     tabName = "Hydro",
-    tags$style(HTML("#Performance * { font-size: 18px; } #validation_message { color: red; font-size: 25px; }")),
-    
+    #tags$style(HTML("#Performance * { font-size: 18px; } #validation_message { color: red; font-size: 25px; }")),
+    tags$head(
+      includeCSS("www/css/hydrology.css")
+    ),
     sidebarLayout(
       sidebarPanel(
         useShinyjs(),
@@ -159,20 +161,25 @@ hydro_server <- function(id) {
     
     # Commented out for now since I'm trying to have the user have the ability to change the plot scale
     # ### Warning message if some data points are omitted from the plot ----
-    # output$hydroPlotWarningMessage <- renderText({
-    #   req(input$hydrofile)
-    #   
-    #   if ( nrow(processed_hydrodata()) > nrow(filtered_hydrodata()) ) {
-    #     HTML("
-    #     <p>
-    #       <strong>Note</strong>: For the sake of maintaining readability of the plot visual, some data points have been omitted from this plot. 
-    #       You may download the data with the button above the graph to view the full dataset
-    #     </p>
-    #     ")
-    #   } else {
-    #     NULL
-    #   }
-    # })
+    output$hydroPlotWarningMessage <- renderText({
+      req(input$hydrofile, input$axisLimit)
+      
+      df <- processed_hydrodata()
+      axis_limit <- input$axisLimit
+      
+      # Check if any data points exceed the selected axis range
+      if (any(df$`precip/design` > axis_limit | df$`volreduc/design` > axis_limit)) {
+        HTML("
+      <p style='color: red;'>
+        <strong>Note</strong>: Some data points are outside the current axis limit and are not shown in the plot.<br>
+        Use the slider to adjust the axis range and reveal hidden points.
+      </p>
+    ")
+      } else {
+        NULL
+      }
+    })
+    
     
     getAxisLimit <- reactive({
       if (is.null(input$axisLimit) || length(input$axisLimit) != 1 || is.na(input$axisLimit)) {
@@ -295,7 +302,7 @@ hydro_server <- function(id) {
                      ),
                      sliderInput(ns("axisLimit"), "Set axis limits:",
                                  min = 0, max = 100, value = 10, step = 1),
-                     textOutput(ns("hydroPlotWarningMessage"))
+                     htmlOutput(ns("hydroPlotWarningMessage"))
               )
             )
           ),

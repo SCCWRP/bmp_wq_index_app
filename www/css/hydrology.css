@@ -1,0 +1,16 @@
+input[type="range"],
+.irs,
+.irs-bar,
+.irs-line,
+.irs-handle,
+.irs-grid,
+.irs-slider,
+.irs-single,
+.irs-min,
+.irs-max {
+  cursor: pointer !important;
+}
+
+
+#Performance * { font-size: 18px; } 
+#validation_message { color: red; font-size: 25px; }
