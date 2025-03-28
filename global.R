@@ -79,89 +79,23 @@ bypass_shapes <- c(
 )
 
 
-# CSS ----
-css <- '
-    .centerImage {
-      display:block; 
-      margin-left:auto; 
-      margin-right:auto; 
-      height: 60%; 
-      width: 60%
-    }
-    
-    .reference {
-      padding-left: 2em;
-      text-indent:-2em;
-    }
-    
-    h2, h3, h4 {
-      color:#4679B2
-    }
-    
-    figcaption {
-      color:#4679B2;
-      font-size:12px;
-      font-style: italic;
-      padding:1em
-    }
-    
-    #body_div {
-      padding-left: 12vw;
-      padding-right: 12vw;
-    }
-    
-    #toc_container {
-      position: sticky;
-      top: 20px;
-      background: #f9f9f9 none repeat scroll 0 0;
-      border: 1px solid #aaa;
-      display: inline-table;
-      float: left;
-      font-size: 95%;
-      margin-bottom: 1em;
-      margin-left: -12vw;
-      padding: 0.5em;
-      width: 10vw;
-      z-index: 100
-    }
-    
-    .toc_title {
-      font-weight: 700;
-      text-align: left;
-    }
-    
-    #toc_container li,
-    #toc_container ul,
-    #toc_container ul li {
-      list-style: none;
-      padding-left: 0.5em;
-      text-indent: -0.5em;
-    }
-    '
-
-
 # Welcome tab content ----
 welcome_tab <- tabItem(
   tabName = "Welcome",
+  tags$head(
+    includeCSS("www/css/welcome.css")
+  ),
   h1("BMP Water Quality Performance Index Calculator", align = "center"),
   h2(HTML("This application was developed to implement the analysis Fassman-Beck et al. (2025) – A Data-Driven Index for Evaluating BMP Water Quality Performance <a href='https://www.sccwrp.org/' target='_blank'>DOI link forth coming</a>"), align = "center"),
   br(),
   div(
-    style = "height: calc(100vh - 150px); overflow-y: auto; padding-right: 10px;font-size: 18px;", 
-    tags$style(HTML("
-            figcaption {
-              font-size: 18px; /* Adjust this size as needed */
-            }
-          ")),
+    class = 'main-welcome-div',
     box(
       status = "primary", width = 12,
       fluidRow(
         column(
           width = 12,
           tagList(
-            tags$head(
-              tags$style(HTML(css))
-            ),
             # use Tex markdown in page
             tags$div(HTML("<script type='text/x-mathjax-config' >
                     MathJax.Hub.Config({
@@ -173,7 +107,6 @@ welcome_tab <- tabItem(
             # table of contents
             tags$div(
               id = "body_div",
-              height = "90vh",
               tags$div(
                 id = "toc_container",
                 tags$p(
@@ -440,41 +373,36 @@ welcome_tab <- tabItem(
             width = 6,
             h3("Contributors", align = "center"),
             div(
-              style = "display: flex; flex-direction: column; align-items: center;",
+              class = "contributors-container",
               tags$ul(
-                style = "list-style-position: inside; text-align: left; padding: 0;",
+                class = "contributors-list",
                 tags$li("Dr. Elizabeth Fassman-Beck"),
                 tags$li("Ken Schiff"),
                 tags$li("Dr. Edward Tiernan"),
                 tags$li("Robert Butler"),
                 tags$li("Duy Nguyen")
               ),
-              tags$img(src = "sccwrp-logo.png", width = "30%", height = "30%", style = "margin-top: 10px;")
+              tags$img(
+                src = "sccwrp-logo.png",
+                class = "contributors-logo"
+              )
             )
           ),
           column(
             width = 6,
-            
-            #### Header for Project Manager ----
             h3("Los Angeles County Department of Public Works Project Manager"),
-            
-            #### List for Project Manager ----
             div(
-              style = "display: flex; flex-direction: column; align-items: flex-start;",
+              class = "manager-container",
               tags$ul(
-                style = "list-style-position: inside; text-align: left; padding: 0;",
+                class = "manager-list",
                 tags$li("Frank Cheng")
               )
             ),
-            
-            #### Header for Advisory Group Members ----
             h3("Advisory Group Members"),
-            
-            #### List for Advisory Group Members ----
             div(
-              style = "display: flex; flex-direction: column; align-items: flex-start;",
+              class = "advisory-container",
               tags$ul(
-                style = "list-style-position: inside; text-align: left; padding: 0;",
+                class = "advisory-list",
                 tags$li("Dr. Bridget Wadzuk, Villanova University"),
                 tags$li("Annalisa Moe, Heal the Bay"),
                 tags$li("Richard Boon, Riverside County Flood Control and Water Conservation District"),
@@ -484,11 +412,12 @@ welcome_tab <- tabItem(
                 tags$li("Bhaskar Joshi, Caltrans")
               )
             )
-          )   
+          )
         )
-      )
+      ) # end "pseudo-footer" box
+      
     )
-  )
+  ) # end main-welcome-div
 )
 
 # Contact tab content ----
