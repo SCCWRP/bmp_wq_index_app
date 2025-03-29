@@ -159,7 +159,7 @@ hydro_server <- function(id) {
     
     
     # Commented out for now since I'm trying to have the user have the ability to change the plot scale
-    # ### Warning message if some data points are omitted from the plot ----
+    ### Warning message if some data points are omitted from the plot ----
     output$hydroPlotWarningMessage <- renderText({
       req(input$hydrofile, input$axisLimit)
       
@@ -180,6 +180,7 @@ hydro_server <- function(id) {
     })
     
     
+    ### Reactive function to get the axis limit for the hydrology plot ----
     getAxisLimit <- reactive({
       if (is.null(input$axisLimit) || length(input$axisLimit) != 1 || is.na(input$axisLimit)) {
         return(3)  # fallback
@@ -189,7 +190,7 @@ hydro_server <- function(id) {
     
     
     
-    ### Observe changes in the data to update the slider input
+    ### Observe changes in the data to update the slider input ----
     observe({
       df <- processed_hydrodata()
       max_val <- ceiling(max(c(df$`precip/design`, df$`volreduc/design`), na.rm = TRUE))
@@ -244,6 +245,14 @@ hydro_server <- function(id) {
       }
     )
     
+    ### Processed Hydrology data download (used for the graph) ----
+    output$downloadProcessedHydroData <- downloadHandler(
+      filename = function() { "hydrology_data_from_plot.csv" },
+      content = function(file) {
+        write.csv(processed_hydrodata(), file, row.names = FALSE)
+      }
+    )
+    
     ### Hydrology plot download ----
     output$downloadHydroPlot <- downloadHandler(
       filename = function() { "Hydrology_Performance_Plot.png" },
@@ -290,6 +299,7 @@ hydro_server <- function(id) {
               column(12,
                      h4("Performance Index Plot"),
                      downloadButton(ns("downloadHydroPlot"), "Download Plot"),
+                     downloadButton(ns("downloadProcessedHydroData"), "Download Data"),
                      actionButton(ns("read_me"), "Read Me", class = "btn-info"),
                      #shinycssloaders::withSpinner(plotOutput(ns("hydroplot")))
                      shinycssloaders::withSpinner(
