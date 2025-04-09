@@ -107,6 +107,12 @@ wq_server <- function(id) {
     # *Variables here that are difficult to tell where they are defined are most likely found in global.R 
     # (For example, the shapes and colors vectors)
     effinf_plot <- reactive({
+      
+      req(getAxisLimit())
+      
+      plot_limit <- getAxisLimit()
+      plot_width <- ifelse(is.na(plot_limit), 1, plot_limit / 5)
+      
       df <- processed_wqdata()
       df <- df %>% mutate(`inf/thresh` = round(`inf/thresh`, 1),
                           `eff/thresh` = round(`eff/thresh`, 1))
@@ -125,20 +131,80 @@ wq_server <- function(id) {
         theme_minimal(base_size = 16) +
         scale_color_manual(values = perf_colors) +
         scale_shape_manual(values = perf_shapes) +
+        scale_x_continuous(
+          limits = c(0, plot_limit ),
+          labels = format_axes(1),
+          breaks = scales::breaks_width(plot_width)
+        ) +
+        scale_y_continuous(
+          limits = c(0, plot_limit ),
+          labels = format_axes(1),
+          breaks = scales::breaks_width(plot_width)
+        ) +
         geom_hline(yintercept = 1, linetype = "dashed") +
         geom_vline(xintercept = 1, linetype = "dashed") +
         geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-        coord_fixed() +
+        # coord_fixed() +
         theme(
-          plot.background = element_rect(fill = "white", color = NA),
-          panel.background = element_rect(fill = "white", color = "black")
+          text = element_text(size = 18),
+          axis.title = element_text(size = 18),
+          axis.text = element_text(size = 16),
+          legend.title = element_text(size = 14),
+          legend.text = element_text(size = 13),
+          legend.position = 'bottom',
+          legend.margin = margin(-5, 0, -5, 0),
+          legend.box = 'horizontal',
+          legend.box.just = 'top',
+          panel.grid.minor = element_blank()
         )
+      
     })
     
     ## Plotly-ify the above graph (I think mainly for the sake of having tooltips)
     ### NOTE it seems to mess up the dashed y = 1 and x = 1 lines that were originally intended to be on the plot
     output$effinf_plot <- plotly::renderPlotly({
       ggplotly(effinf_plot()) 
+    })
+    
+    # Commented out for now since I'm trying to have the user have the ability to change the plot scale
+    ### Warning message if some data points are omitted from the plot ----
+    output$wqPlotWarningMessage <- renderText({
+      req(input$wqfile, input$axisLimit)
+      
+      df <- processed_wqdata()
+      axis_limit <- input$axisLimit
+      
+      # Check if any data points exceed the selected axis range
+      if (any(df$`inf/thresh` > axis_limit | df$`eff/thresh` > axis_limit)) {
+        HTML("
+      <p style='color: red;'>
+        <strong>Note</strong>: Some data points are outside the current axis limit and are not shown in the plot.<br>
+        Use the slider to adjust the axis range and reveal hidden points.
+      </p>
+    ")
+      } else {
+        NULL
+      }
+    })
+    
+    ### Reactive function to get the axis limit for the hydrology plot ----
+    getAxisLimit <- reactive({
+      if (is.null(input$axisLimit) || length(input$axisLimit) != 1 || is.na(input$axisLimit)) {
+        return(3)  # fallback
+      }
+      input$axisLimit
+    })
+    
+    ### Observe changes in the data to update the slider input ----
+    observe({
+      df <- processed_wqdata()
+      max_val <- ceiling(max(c(df$`inf/thresh`, df$`eff/thresh`), na.rm = TRUE))
+      max_slider_val <- max(max_val, 3)
+      
+      updateSliderInput(session, "axisLimit",
+                        min = 1,
+                        max = max_slider_val,
+                        value = max_slider_val)
     })
     
     
@@ -219,7 +285,10 @@ wq_server <- function(id) {
                    #shinycssloaders::withSpinner(plotly::plotlyOutput(ns("effinf_plot")))
                    shinycssloaders::withSpinner(
                      plotly::plotlyOutput(ns("effinf_plot"), width = "100%")
-                   )
+                   ),
+                   sliderInput(ns("axisLimit"), "Set axis limits:",
+                               min = 0, max = 100, value = 10, step = 1),
+                   htmlOutput(ns("wqPlotWarningMessage"))
                    
             )
           ),
