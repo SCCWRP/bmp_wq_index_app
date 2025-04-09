@@ -4,6 +4,7 @@
 library(ggplot2)
 library(shiny)
 library(shinydashboard)
+library(shinyWidgets)
 library(shinyjs)
 library(dplyr)
 library(DT)

@@ -111,8 +111,6 @@ wq_server <- function(id) {
       req(getAxisLimit())
       
       plot_limit <- getAxisLimit() %>% as.numeric
-      print("plot_limit")
-      print(plot_limit)
       plot_width <- ifelse(is.na(plot_limit), 1, plot_limit / 5)
       
       df <- processed_wqdata()
@@ -263,7 +261,7 @@ wq_server <- function(id) {
     output$downloadPlot <- downloadHandler(
       filename = function() { "Performance_Index_Plot.png" },
       content = function(file) {
-        ggsave(file, plot = effinf_plot(), device = "png", width = 12, height = 8, dpi = 300)
+        ggsave(file, plot = effinf_plot(), device = "png", width = 12, height = 8, dpi = 300, bg = "white")
       }
     )
     
@@ -290,10 +288,7 @@ wq_server <- function(id) {
                    h4("Performance Index Plot"),
                    downloadButton(ns("downloadPlot"), "Download Plot"),
                    actionButton(ns("read_me"), "Read Me", class = "btn-info"),
-                   #shinycssloaders::withSpinner(plotly::plotlyOutput(ns("effinf_plot")))
-                   # shinycssloaders::withSpinner(
-                   #   plotly::plotlyOutput(ns("effinf_plot"), width = "100%")
-                   # ),
+                   
                    shinycssloaders::withSpinner(
                      div(style = "position: relative; width: 100%; padding-bottom: 75%;",
                          div(style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
@@ -306,10 +301,7 @@ wq_server <- function(id) {
                      choices = as.character(1:5),
                      selected = as.character(5),
                      grid = TRUE
-                   )
-                   
-                   ,
-                   
+                   ),
                    htmlOutput(ns("wqPlotWarningMessage"))
                    
             )

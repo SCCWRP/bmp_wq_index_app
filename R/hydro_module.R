@@ -101,16 +101,14 @@ hydro_server <- function(id) {
       
       dat <- processed_hydrodata()
       
-      #max_plot_vals <- max(c(dat$`precip/design`, dat$`volreduc/design`), na.rm = TRUE)
-      #plot_limit <- max(getAxisLimit(), 3)
-      plot_limit <- getAxisLimit()
+      plot_limit <- getAxisLimit() %>% as.numeric
       plot_width <- ifelse(is.na(plot_limit), 1, plot_limit / 5)
       
       message(paste("plot_limit =", plot_limit, "plot_width =", plot_width))
       
       
       ggplot(dat, aes(`precip/design`, `volreduc/design`)) +
-        geom_point(aes(colour = quadrant, shape = quadrant), size = 4) +
+        geom_point(aes(colour = quadrant, shape = quadrant), size = 5) +
         geom_segment(x = 1, y = -Inf, xend = 1, yend = 0.8, linetype = "dashed", linewidth = 1) +
         geom_segment(x = 1, y = Inf, xend = 1, yend = 1.2, linetype = "dashed", linewidth = 1) +
         geom_hline(yintercept = 1 + UNCERTAINTY_BUFFER, linetype = 'dashed', linewidth = 1) +
@@ -196,10 +194,13 @@ hydro_server <- function(id) {
       max_val <- ceiling(max(c(df$`precip/design`, df$`volreduc/design`), na.rm = TRUE))
       max_slider_val <- max(max_val, 3)
       
-      updateSliderInput(session, "axisLimit",
-                        min = 1,
-                        max = max_slider_val,
-                        value = max_slider_val)
+      shinyWidgets::updateSliderTextInput(
+        session,
+        "axisLimit",
+        choices = as.character(1:max_slider_val),
+        selected = as.character(max_slider_val)
+      )
+      
     })
     
     
@@ -257,7 +258,7 @@ hydro_server <- function(id) {
     output$downloadHydroPlot <- downloadHandler(
       filename = function() { "Hydrology_Performance_Plot.png" },
       content = function(file) {
-        ggsave(file, plot = hydroplot(), device = "png", width = 13.33, height = 7.33, dpi = 300)
+        ggsave(file, plot = hydroplot(), device = "png", width = 13.33, height = 7.33, dpi = 300, bg = "white")
       }
     )
     
@@ -309,8 +310,12 @@ hydro_server <- function(id) {
                            )
                        )
                      ),
-                     sliderInput(ns("axisLimit"), "Set axis limits:",
-                                 min = 0, max = 100, value = 10, step = 1),
+                     shinyWidgets::sliderTextInput(
+                       ns("axisLimit"), "Set axis limits:",
+                       choices = as.character(1:5),
+                       selected = as.character(5),
+                       grid = TRUE
+                     ),
                      htmlOutput(ns("hydroPlotWarningMessage"))
               )
             )
