@@ -84,18 +84,18 @@ wq_server <- function(id) {
       
       # This is code that has been adapted/copy/pasted over the course of 5-6 years now (its 2025 at the time of this comment)
       # There are certain reasons why the different iterations of authoring this code resulted in "quadrant2" being the category name
-      # If I change it to something else here, it may break the code in many other places, so I will be leaving it as "quadrant2"
+      # April 8 2025 in this app i will attempt to change it to quadrant2
       df <- df %>%
         mutate(`inf/thresh` = influent / input$threshold,
                `eff/thresh` = effluent / input$threshold) %>%
-        mutate(quadrant2 = case_when(
+        mutate(quadrant = case_when(
           (`eff/thresh` < 1 & `inf/thresh` > 1) ~ "Success",
           (`eff/thresh` < `inf/thresh` & `inf/thresh` <= 1) ~ "Excess",
           (`eff/thresh` >= `inf/thresh` & `eff/thresh` < 1) ~ "Marginal",
           (`eff/thresh` >= 1 & `eff/thresh` >= `inf/thresh`) ~ "Failure",
           (`eff/thresh` >= 1 & `eff/thresh` < `inf/thresh`) ~ "Insufficient"
         )) %>%
-        mutate(quadrant2 = factor(quadrant2, levels = c("Success", "Excess", "Marginal", "Insufficient", "Failure")))
+        mutate(quadrant = factor(quadrant, levels = c("Success", "Excess", "Marginal", "Insufficient", "Failure")))
       
       # Return  
       df
@@ -117,7 +117,7 @@ wq_server <- function(id) {
       df <- df %>% mutate(`inf/thresh` = round(`inf/thresh`, 1),
                           `eff/thresh` = round(`eff/thresh`, 1))
       
-      ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant2, shape = quadrant2)) +
+      ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant, shape = quadrant)) +
         geom_point(size = 5) +
         labs(
           x = "Influent / Threshold",
@@ -219,7 +219,7 @@ wq_server <- function(id) {
     gauge_plot <- reactive({
       req(processed_wqdata())
       df <- processed_wqdata()
-      scr <- get.composite.score(df, performance_col = 'quadrant2')
+      scr <- get.composite.score(df, performance_col = 'quadrant')
       get.composite.gauge(scr)
     })
     
@@ -231,7 +231,7 @@ wq_server <- function(id) {
     
     ## WQ Index Summary Table  ---------------------------------------------------------------------------------------------------------
     summary_dat <- reactive({
-      summary.table(processed_wqdata(), threshold = input$threshold, performance_col = 'quadrant2')
+      summary.table(processed_wqdata(), threshold = input$threshold, performance_col = 'quadrant')
     })
     
     # Render the summary table 
@@ -254,6 +254,14 @@ wq_server <- function(id) {
       filename = function() { "sample_influent_effluent.csv" },
       content = function(file) {
         file.copy("demo/sample_influent_effluent.csv", file)
+      }
+    )
+    
+    ### Processed WQ data download (used for the graph) ----
+    output$downloadProcessedWQData <- downloadHandler(
+      filename = function() { "wq_data_from_plot.csv" },
+      content = function(file) {
+        write.csv(processed_wqdata(), file, row.names = FALSE)
       }
     )
     
@@ -287,6 +295,7 @@ wq_server <- function(id) {
             column(12,
                    h4("Performance Index Plot"),
                    downloadButton(ns("downloadPlot"), "Download Plot"),
+                   downloadButton(ns("downloadProcessedWQData"), "Download Data"),
                    actionButton(ns("read_me"), "Read Me", class = "btn-info"),
                    
                    shinycssloaders::withSpinner(
