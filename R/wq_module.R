@@ -110,7 +110,9 @@ wq_server <- function(id) {
       
       req(getAxisLimit())
       
-      plot_limit <- getAxisLimit()
+      plot_limit <- getAxisLimit() %>% as.numeric
+      print("plot_limit")
+      print(plot_limit)
       plot_width <- ifelse(is.na(plot_limit), 1, plot_limit / 5)
       
       df <- processed_wqdata()
@@ -118,7 +120,7 @@ wq_server <- function(id) {
                           `eff/thresh` = round(`eff/thresh`, 1))
       
       ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant2, shape = quadrant2)) +
-        geom_point(size = 3) +
+        geom_point(size = 5) +
         labs(
           x = "Influent / Threshold",
           y = "Effluent / Threshold",
@@ -162,8 +164,10 @@ wq_server <- function(id) {
     
     ## Plotly-ify the above graph (I think mainly for the sake of having tooltips)
     ### NOTE it seems to mess up the dashed y = 1 and x = 1 lines that were originally intended to be on the plot
-    output$effinf_plot <- plotly::renderPlotly({
-      ggplotly(effinf_plot()) 
+    # output$effinf_plot <- plotly::renderPlotly({
+    output$effinf_plot <- renderPlot({
+      # ggplotly(effinf_plot())
+      effinf_plot()
     })
     
     # Commented out for now since I'm trying to have the user have the ability to change the plot scale
@@ -201,10 +205,14 @@ wq_server <- function(id) {
       max_val <- ceiling(max(c(df$`inf/thresh`, df$`eff/thresh`), na.rm = TRUE))
       max_slider_val <- max(max_val, 3)
       
-      updateSliderInput(session, "axisLimit",
-                        min = 1,
-                        max = max_slider_val,
-                        value = max_slider_val)
+      shinyWidgets::updateSliderTextInput(
+        session,
+        "axisLimit",
+        choices = as.character(1:max_slider_val),
+        selected = as.character(max_slider_val)
+      )
+      
+      
     })
     
     
@@ -283,11 +291,25 @@ wq_server <- function(id) {
                    downloadButton(ns("downloadPlot"), "Download Plot"),
                    actionButton(ns("read_me"), "Read Me", class = "btn-info"),
                    #shinycssloaders::withSpinner(plotly::plotlyOutput(ns("effinf_plot")))
+                   # shinycssloaders::withSpinner(
+                   #   plotly::plotlyOutput(ns("effinf_plot"), width = "100%")
+                   # ),
                    shinycssloaders::withSpinner(
-                     plotly::plotlyOutput(ns("effinf_plot"), width = "100%")
+                     div(style = "position: relative; width: 100%; padding-bottom: 75%;",
+                         div(style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
+                             plotOutput(ns("effinf_plot"), width = "100%", height = "100%")
+                         )
+                     )
                    ),
-                   sliderInput(ns("axisLimit"), "Set axis limits:",
-                               min = 0, max = 100, value = 10, step = 1),
+                   shinyWidgets::sliderTextInput(
+                     ns("axisLimit"), "Set axis limits:",
+                     choices = as.character(1:5),
+                     selected = as.character(5),
+                     grid = TRUE
+                   )
+                   
+                   ,
+                   
                    htmlOutput(ns("wqPlotWarningMessage"))
                    
             )
