@@ -79,15 +79,92 @@ wq_server <- function(id) {
       req(input$wqfile)
       req(input$threshold > 0)
       
-      df <- read.csv(input$wqfile$datapath)
+      ### File type check ----
+      acceptable.file <- input$wqfile$type %in% ACCEPTABLE_FILETYPES
+      if (!acceptable.file) {
+        showModal(modalDialog(
+          title = "Unrecognized file type",
+          paste0(
+            "Unrecognized filetype: ", input$wqfile$type,
+            ". Please upload a file of one of the following types: ",
+            paste(ACCEPTABLE_FILETYPE_COMMON_NAMES, collapse = ", ")
+          ),
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+      }
+      validate(need(acceptable.file, paste0(
+        "Unrecognized filetype: ", input$wqfile$type,
+        ". Please upload a file of type: ",
+        paste(ACCEPTABLE_FILETYPE_COMMON_NAMES, collapse = ", ")
+      )))
       
+      ### Ingest data ----
+      df <- tryCatch({
+        suppressWarnings(read.csv(input$wqfile$datapath))
+      }, error = function(e) {
+        showModal(modalDialog(
+          title = "Error Reading File",
+          paste("There was a problem reading your file:", e$message),
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+        return(NULL)
+      })
+      validate(need(!is.null(df), "File could not be read"))
       
-      # This is code that has been adapted/copy/pasted over the course of 5-6 years now (its 2025 at the time of this comment)
-      # There are certain reasons why the different iterations of authoring this code resulted in "quadrant2" being the category name
-      # April 8 2025 in this app i will attempt to change it to quadrant2
+      ### Check for empty dataframe ----
+      empty.df <- nrow(df) == 0
+      if (empty.df) {
+        showModal(modalDialog(
+          title = "Error Processing File",
+          "No data found in this file",
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+      }
+      validate(need(!empty.df, "No data found"))
+      
+      ### Check column headers ----
+      required_cols <- c("influent", "effluent")
+      missing_cols <- setdiff(required_cols, names(df))
+      has.all.columns <- length(missing_cols) == 0
+      if (!has.all.columns) {
+        showModal(modalDialog(
+          title = "Error Processing File",
+          paste("Data is missing required columns: ", paste(missing_cols, collapse = ', ')),
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+      }
+      validate(need(has.all.columns, paste("Missing columns:", paste(missing_cols, collapse = ", "))))
+      
+      ### Check column data types ----
+      non_numeric_cols <- required_cols[!sapply(df[required_cols], function(col) {
+        col_no_na <- col[!is.na(col)]
+        all(!is.na(suppressWarnings(as.numeric(col_no_na))))
+      })]
+      
+      is.all.numeric <- length(non_numeric_cols) == 0
+      
+      if (!is.all.numeric) {
+        showModal(modalDialog(
+          title = "Invalid Data Format",
+          paste("The following columns contain non-numeric values:", paste(non_numeric_cols, collapse = ", ")),
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+      }
+      validate(need(is.all.numeric, paste("Non-numeric data in columns:", paste(non_numeric_cols, collapse = ", "))))
+      
+      ### Process data ----
       df <- df %>%
-        mutate(`inf/thresh` = influent / input$threshold,
-               `eff/thresh` = effluent / input$threshold) %>%
+        mutate(
+          influent = as.numeric(influent),
+          effluent = as.numeric(effluent),
+          `inf/thresh` = influent / input$threshold,
+          `eff/thresh` = effluent / input$threshold
+        ) %>%
         mutate(quadrant = case_when(
           (`eff/thresh` < 1 & `inf/thresh` > 1) ~ "Success",
           (`eff/thresh` < `inf/thresh` & `inf/thresh` <= 1) ~ "Excess",
@@ -97,10 +174,9 @@ wq_server <- function(id) {
         )) %>%
         mutate(quadrant = factor(quadrant, levels = c("Success", "Excess", "Marginal", "Insufficient", "Failure")))
       
-      # Return  
-      df
-      
+      return(df)
     })
+    
     
     
     ## Function that makes the main WQ Plot  ---------------------------------------------------------------------------------------------------------

@@ -6,11 +6,12 @@ library(shiny)
 library(shinydashboard)
 library(shinyWidgets)
 library(shinyjs)
-library(dplyr)
 library(DT)
+library(dplyr)
 library(plotly)
 library(glue)
 library(stringr)
+library(readxl)
 
 # Source helper functions and modules ------------------------------------------------------------------------------------------------------------------------
 source("R/utils.R")
@@ -78,6 +79,26 @@ bypass_shapes <- c(
   "Bypass" = 1,
   "No Bypass" = 16 
 )
+
+
+# Acceptable input file types ------------------------------------------------------------------------------------------------------------------------------------
+# for the upload routines
+
+# if the uploaded file is a csv, then input$hydrofile$type will be "text/csv"
+# if it is an xlsx file, then input$hydrofile$type will be "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+# if it is an xls, then input$hydrofile$type will be "application/vnd.ms-excel"
+ACCEPTABLE_FILETYPES <- c(
+  "text/csv"
+  # , # csv "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",# xlsx
+  # "application/vnd.ms-excel" # xls
+)
+
+ACCEPTABLE_FILETYPE_COMMON_NAMES <- c(
+  'csv'
+  # ,'xlsx',
+  # 'xls'
+)
+
 
 
 # Welcome tab content ---------------------------------------------------------------------------------------------------------------------------------------------

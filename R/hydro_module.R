@@ -55,10 +55,107 @@ hydro_server <- function(id) {
     
     ## Function that returns the main Hydrology data ---------------------------------------------------------------------------------------------------------
     processed_hydrodata <- reactive({
+      
+      # if the uploaded file is a csv, then input$hydrofile$type will be "text/csv"
+      # if it is an xlsx file, then input$hydrofile$type will be "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      # if it is an xls, then input$hydrofile$type will be "application/vnd.ms-excel"
       req(input$hydrofile)
+      print("input$hydrofile")
+      print(input$hydrofile$type)
       
-      df <- read.csv(input$hydrofile$datapath)
+      ### File type check ----
+      # ACCEPTABLE_FILETYPES is defined in global.R
+      acceptable.file <- input$hydrofile$type %in% ACCEPTABLE_FILETYPES
       
+      #### to show the modal
+      if (!acceptable.file) showModal(modalDialog(
+          title = "Unrecognized file type",
+          paste0(
+            "Unrecognized filetype: ", input$hydrofile$type,
+            ". Please upload a file of one of the following types: ",
+            paste(ACCEPTABLE_FILETYPE_COMMON_NAMES, collapse = ", ")
+          ),
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        )
+      )
+      
+      #### prevent remaining code in function from executing
+      validate(need(acceptable.file,paste0(
+            "Unrecognized filetype: ", input$hydrofile$type,
+            ". Please upload a file of type: ",
+            paste(ACCEPTABLE_FILETYPE_COMMON_NAMES, collapse = ", ")
+          )
+        )
+      )
+      
+      
+      ### Ingest hydrology data ----
+      df <- tryCatch({
+        suppressWarnings(read.csv(input$hydrofile$datapath))
+      }, error = function(e) {
+        showModal(modalDialog(
+          title = "Error Reading File",
+          paste("There was a problem reading your file:", e$message),
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+        return(NULL)
+      })
+      validate(need(!is.null(df), "File could not be read"))
+      
+      ### Check for empty dataframe
+      empty.df <- nrow(df) == 0
+      if (empty.df) {
+        showModal(modalDialog(
+          title = "Error Processing File",
+          "No data found in this file",
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+      }
+      validate(need(!empty.df, "No data found"))
+      
+      
+      ### Check column headers ----
+      required_cols <- c("precipitationdepth", "inflow", "outflow", "bypass")
+      missing_cols <- setdiff(required_cols, names(df))
+      has.all.columns <- length(missing_cols) == 0
+      if (!has.all.columns) {
+        showModal(modalDialog(
+          title = "Error Processing File",
+          paste("Data is missing required columns: ", paste(missing_cols, collapse = ', ')),
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+      }
+      # Prevent further execution of the code
+      validate( need(has.all.columns, paste("Missing columns:", paste(missing_cols, collapse = ", ")) ) )
+      
+      
+      ### Check column data types ----
+      non_numeric_cols <- required_cols[!sapply(df[required_cols], function(col) {
+        # Remove NA values and check if all remaining can be coerced to numeric
+        col_no_na <- col[!is.na(col)]
+        all(!is.na(suppressWarnings(as.numeric(col_no_na))))
+      })]
+      
+      is.all.numeric <- length(non_numeric_cols) == 0
+      
+      if (!is.all.numeric) {
+        showModal(modalDialog(
+          title = "Invalid Data Format",
+          paste("The following columns contain non-numeric values:", paste(non_numeric_cols, collapse = ", ")),
+          easyClose = TRUE,
+          footer = modalButton("Close")
+        ))
+      }
+      validate(need(is.all.numeric, paste("Non-numeric data in columns:", paste(non_numeric_cols, collapse = ", "))))
+      
+      
+      
+      
+      ### Process hydrology data ----
       df <- df %>%
         filter(!is.na(precipitationdepth), !is.na(inflow), !is.na(outflow)) %>%
         mutate(
