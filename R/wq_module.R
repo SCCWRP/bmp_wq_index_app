@@ -80,7 +80,11 @@ wq_server <- function(id) {
       req(input$threshold > 0)
       
       ### File type check ----
-      acceptable.file <- input$wqfile$type %in% ACCEPTABLE_FILETYPES
+      acceptable.file <- (input$wqfile$type %in% ACCEPTABLE_FILETYPES) ||
+        (tolower(tools::file_ext(input$wqfile$name)) == "csv" &&
+           input$hydrofile$type == "application/vnd.ms-excel") # The second part handles an edge case where the MIME type for a csv is incorrectly reported (Firefox)
+      
+      
       if (!acceptable.file) {
         showModal(modalDialog(
           title = "Unrecognized file type",

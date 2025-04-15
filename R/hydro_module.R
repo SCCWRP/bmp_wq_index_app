@@ -65,7 +65,10 @@ hydro_server <- function(id) {
       
       ### File type check ----
       # ACCEPTABLE_FILETYPES is defined in global.R
-      acceptable.file <- input$hydrofile$type %in% ACCEPTABLE_FILETYPES
+      acceptable.file <- (input$hydrofile$type %in% ACCEPTABLE_FILETYPES) ||
+        (tolower(tools::file_ext(input$hydrofile$name)) == "csv" &&
+           input$hydrofile$type == "application/vnd.ms-excel") # The second part handles an edge case where the MIME type for a csv is incorrectly reported (Firefox)
+      
       
       #### to show the modal
       if (!acceptable.file) showModal(modalDialog(
