@@ -362,7 +362,10 @@ wq_server <- function(id) {
     # A scatter plot, gauge, and summary table display on the right side, along with respective download buttons (if applicable)
     # If no file is uploaded, it will display the example JPG that explains the plot and how to interpret it
     output$wq_ui_blocks <- renderUI({
+
+      # If no valid data found, prevent rendering of this entire set of UI components.
       req(processed_wqdata())
+      
       if (is.null(input$wqfile)) {
         tags$img(src = "WQIndexOverviewPlot.jpg", height = "95%", width = "95%")
       } else {
