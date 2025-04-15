@@ -25,6 +25,7 @@ global_point_size <- 4
 UNCERTAINTY_BUFFER <- 0.2
 
 # Plot color and shape settings --------------------------------------------------------------------------------------------------------------------------------
+# For WQ Index Plot
 perf_colors <- c(
   "Success" = "#117733",   
   "Excess" = "#0072B2",    
@@ -38,6 +39,7 @@ perf_colors <- c(
   "Comparison BMP Failure" = "#661100"      
 )
 
+# For WQ Index Plot
 perf_shapes <- c(
   "Success" = 16,
   "Excess" = 17,
@@ -51,6 +53,7 @@ perf_shapes <- c(
   "Comparison BMP Failure" = 0
 )
 
+# For Hydrology Index Plot
 hydro_colors <- c(
   "Success" = "#117733",
   "Excess" = "#0072B2",
@@ -59,6 +62,7 @@ hydro_colors <- c(
   "Small Storm With Bypass" = "purple"
 )
 
+# For Hydrology Index Plot
 hydro_shapes <- c(
   "Success" = 16,       # Filled Circle
   "Excess" = 17,        # Filled Triangle
@@ -67,6 +71,7 @@ hydro_shapes <- c(
   "Failure" = 15       # Filled Square
 )
 
+# For Hydrology Index Plot
 designplot_colors <- c(
   "Success" = "#117733",
   "Excess" = "#0072B2",
@@ -75,6 +80,7 @@ designplot_colors <- c(
   "Small Storm With Bypass" = "purple"
 )
 
+# For Hydrology Index Plot
 bypass_shapes <- c(
   "Bypass" = 1,
   "No Bypass" = 16 
@@ -93,6 +99,8 @@ ACCEPTABLE_FILETYPES <- c(
   # "application/vnd.ms-excel" # xls
 )
 
+# As of now we will only accept csv files, as it was originally intended as such (to only accept CSV's)
+# Accepting only CSV's will keep it simple, unless we get requests for the application to accept excel files as well.
 ACCEPTABLE_FILETYPE_COMMON_NAMES <- c(
   'csv'
   # ,'xlsx',
