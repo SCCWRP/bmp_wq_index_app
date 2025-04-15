@@ -367,15 +367,25 @@ hydro_server <- function(id) {
       }
     )
     
-    ## README Action button ----
+    ## Download Info Action button ----
     # Simple instructions explaining the plot downloads
-    observeEvent(input$read_me, {
+    observeEvent(input$download_info, {
       showModal(modalDialog(
-        title = "Instructions",
+        title = "ⓘ Data and Plot Download Information",
         tags$div(style = "font-size: 14px;",
-                 "When you click the Download Plot button, a .png file formatted for reports or other use cases will be downloaded.",
+                 "If you click 'Download Data' above the plot, your data will be downloaded with 5 additional columns:",
+                 # Bypass occurred	precip/design	volreduc/design	quadrant	bypass_fraction
+                 tags$li("Bypass occurred (a column simply indicating whether or not bypass ocurred at the event)"),
+                 tags$li("precip/design (ratio of precipitation depth to the design storm depth)"),
+                 tags$li("volreduc/design (ratio of volume reduction to the design volume)"),
+                 tags$li("quadrant (category of performance of the BMP at that event)"),
+                 tags$li("bypass_fraction ( Bypass / (Bypass + Inflow) )"),
                  tags$br(), tags$br(),
-                 "To download the interactive plot as it appears on screen, use the camera icon in the plot toolbar."),
+                 "When you click the Download Plot button, a .png file formatted for reports or other use cases will be downloaded."
+                 
+                 # Old instructions from when a plotly object was rendered in the UI
+                 # "To download the interactive plot as it appears on screen, use the camera icon in the plot toolbar."
+        ),
         easyClose = TRUE,
         footer = modalButton("Close")
       ))
@@ -402,7 +412,7 @@ hydro_server <- function(id) {
                      h4("Performance Index Plot"),
                      downloadButton(ns("downloadHydroPlot"), "Download Plot"),
                      downloadButton(ns("downloadProcessedHydroData"), "Download Data"),
-                     actionButton(ns("read_me"), "Read Me", class = "btn-info"),
+                     actionButton(ns("download_info"), "ⓘ Info", class = "btn-info"),
                      #shinycssloaders::withSpinner(plotOutput(ns("hydroplot")))
                      shinycssloaders::withSpinner(
                        div(style = "position: relative; width: 100%; padding-bottom: 75%;",

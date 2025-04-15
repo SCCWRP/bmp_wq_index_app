@@ -357,6 +357,29 @@ wq_server <- function(id) {
       }
     )
     
+    
+    ## Download Info Action button ----
+    # Simple instructions explaining the plot downloads
+    observeEvent(input$download_info, {
+      showModal(modalDialog(
+        title = "ⓘ Data and Plot Download Information",
+        tags$div(style = "font-size: 14px;",
+                 "If you click 'Download Data' above the plot, your data will be downloaded with 3 additional columns:",
+                 tags$li("inf/thresh (ratio of influent concentration to the user-defined threshold"),
+                 tags$li("eff/thresh (ratio of effluent concentration to the user-defined threshold"),
+                 tags$li("quadrant (the category of the BMP's performance at that event)"),
+                 tags$br(), tags$br(),
+                 "When you click the Download Plot button, a .png file formatted for reports or other use cases will be downloaded."
+                 
+                 # Old instructions from when a plotly object was rendered in the UI
+                 # "To download the interactive plot as it appears on screen, use the camera icon in the plot toolbar."
+        ),
+        easyClose = TRUE,
+        footer = modalButton("Close")
+      ))
+    })
+    
+    
     ## Plot/graphs UI ----
     # This is the UI that gets generated when they upload their data
     # A scatter plot, gauge, and summary table display on the right side, along with respective download buttons (if applicable)
@@ -376,7 +399,7 @@ wq_server <- function(id) {
                    h4("Performance Index Plot"),
                    downloadButton(ns("downloadPlot"), "Download Plot"),
                    downloadButton(ns("downloadProcessedWQData"), "Download Data"),
-                   actionButton(ns("read_me"), "Read Me", class = "btn-info"),
+                   actionButton(ns("download_info"), "ⓘ Info", class = "btn-info"),
                    
                    shinycssloaders::withSpinner(
                      div(style = "position: relative; width: 100%; padding-bottom: 75%;",
