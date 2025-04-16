@@ -81,8 +81,7 @@ wq_server <- function(id) {
       
       ### File type check ----
       acceptable.file <- (input$wqfile$type %in% ACCEPTABLE_FILETYPES) ||
-        (tolower(tools::file_ext(input$wqfile$name)) == "csv" &&
-           input$hydrofile$type == "application/vnd.ms-excel") # The second part handles an edge case where the MIME type for a csv is incorrectly reported (Firefox)
+        tolower(tools::file_ext(input$wqfile$name)) == "csv" # The second part handles an edge case where the MIME type for a csv is incorrectly reported (Firefox)
       
       
       if (!acceptable.file) {
@@ -257,7 +256,7 @@ wq_server <- function(id) {
       axis_limit <- input$axisLimit
       
       # Check if any data points exceed the selected axis range
-      if (any(df$`inf/thresh` > axis_limit | df$`eff/thresh` > axis_limit)) {
+      if (any( na.omit(df$`inf/thresh` > axis_limit | df$`eff/thresh` > axis_limit) ) ) {
         HTML("
       <p style='color: red;'>
         <strong>Note</strong>: Some data points are outside the current axis limit and are not shown in the plot.<br>

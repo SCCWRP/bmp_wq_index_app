@@ -66,8 +66,7 @@ hydro_server <- function(id) {
       ### File type check ----
       # ACCEPTABLE_FILETYPES is defined in global.R
       acceptable.file <- (input$hydrofile$type %in% ACCEPTABLE_FILETYPES) ||
-        (tolower(tools::file_ext(input$hydrofile$name)) == "csv" &&
-           input$hydrofile$type == "application/vnd.ms-excel") # The second part handles an edge case where the MIME type for a csv is incorrectly reported (Firefox)
+        tolower(tools::file_ext(input$hydrofile$name)) == "csv" # The second part handles an edge case where the MIME type for a csv is incorrectly reported (Firefox)
       
       
       #### to show the modal
@@ -265,7 +264,7 @@ hydro_server <- function(id) {
       axis_limit <- input$axisLimit
       
       # Check if any data points exceed the selected axis range
-      if (any(df$`precip/design` > axis_limit | df$`volreduc/design` > axis_limit)) {
+      if (any( na.omit(df$`precip/design` > axis_limit | df$`volreduc/design` > axis_limit) )) {
         HTML("
       <p style='color: red;'>
         <strong>Note</strong>: Some data points are outside the current axis limit and are not shown in the plot.<br>
