@@ -37,5 +37,5 @@ jobs:
         Rscript -e '
           app_name <- ifelse(Sys.getenv("DEPLOY_ENV") == "production", "bmp_wq_index_app", "bmp_wq_index_app_staging");
           message("Deploying to: ", app_name);
-          rsconnect::deployApp(appDir = ".", appName = app_name)
+          rsconnect::deployApp(appDir = ".", appName = app_name, forceUpdate = TRUE)
         '
