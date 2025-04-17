@@ -162,6 +162,7 @@ wq_server <- function(id) {
       
       ### Process data ----
       df <- df %>%
+        filter(!is.na(influent), !is.na(effluent)) %>% # labmp performance index filters the data this way as well
         mutate(
           influent = as.numeric(influent),
           effluent = as.numeric(effluent),
