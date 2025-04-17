@@ -260,20 +260,43 @@ hydro_server <- function(id) {
     output$hydroPlotWarningMessage <- renderText({
       req(input$hydrofile, input$axisLimit)
       
-      df <- processed_hydrodata()
-      axis_limit <- input$axisLimit
+      # initialize the return message (to display to the user)
+      msg <- ""
       
-      # Check if any data points exceed the selected axis range
-      if (any( na.omit(df$`precip/design` > axis_limit | df$`volreduc/design` > axis_limit) )) {
-        HTML("
-      <p style='color: red;'>
-        <strong>Note</strong>: Some data points are outside the current axis limit and are not shown in the plot.<br>
-        Use the slider to adjust the axis range and reveal hidden points.
-      </p>
-    ")
-      } else {
-        NULL
+      df <- processed_hydrodata()
+      axis_limit <- input$axisLimit %>% as.numeric
+            
+      # Issue warning message if negative values are found
+      negative.values <- (df$`precip/design` < 0 | df$`volreduc/design` < 0)
+      if (any( replace(negative.values, is.na(negative.values), FALSE ) )) {
+        msg <- paste0(
+          msg,
+          "
+            <p style='color: red;'>
+              <strong>Note</strong>: Some data points are in the negative range and are not displayed on the graph.
+            </p>
+          "
+        )
       }
+        
+      # Check if any data points exceed the selected axis range
+      # issue a warning if there are
+      above.axis.limit <- (df$`precip/design` > axis_limit | df$`volreduc/design` > axis_limit)
+      if (any( replace(above.axis.limit, is.na(above.axis.limit), FALSE ) )) {
+          msg <- paste0(
+            msg, 
+            "
+              <p style='color: red;'>
+                <strong>Note</strong>: Some data points are outside the current axis limit and are not shown in the plot.<br>
+                Use the slider to adjust the axis range and reveal hidden points.
+              </p>
+            "
+          )
+      } 
+      
+      # return
+      msg
+      
     })
     
     
@@ -292,6 +315,9 @@ hydro_server <- function(id) {
       df <- processed_hydrodata()
       max_val <- ceiling(max(c(df$`precip/design`, df$`volreduc/design`), na.rm = TRUE))
       max_slider_val <- max(max_val, 3)
+      
+      # prevent slider from going too long
+      max_slider_val <- ifelse(max_slider_val > 500, 500, max_slider_val)
       
       shinyWidgets::updateSliderTextInput(
         session,
