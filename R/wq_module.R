@@ -164,10 +164,19 @@ wq_server <- function(id) {
       df <- df %>%
         filter(!is.na(influent), !is.na(effluent)) %>% # labmp performance index filters the data this way as well
         mutate(
-          influent = as.numeric(influent),
-          effluent = as.numeric(effluent),
-          `inf/thresh` = influent / input$threshold,
-          `eff/thresh` = effluent / input$threshold
+          
+          # round half up is a function from the library called "janitor"
+          # it is not from base R
+          # it is used to circumvent R's non-traditional rounding method (IEEE 754) AKA banker's rounding
+          # Round half up uses the traditional rounding method we learned in elementary school
+          # So if the next decimal place is a 5, it will round it up rather than going to the nearest even number
+          # Rounding to 2 decimal place convention here is following that of the performance index application that was given to LACPW
+          # rounding is performed after taking the ratio of inflow and outflow to the user-defined threshold
+          
+          influent = as.numeric(influent) ,
+          effluent = as.numeric(effluent) ,
+          `inf/thresh` = ( influent / input$threshold ) %>% round_half_up(2),
+          `eff/thresh` = ( effluent / input$threshold ) %>% round_half_up(2)
         ) %>%
         mutate(quadrant = case_when(
           (`eff/thresh` < 1 & `inf/thresh` > 1) ~ "Success",

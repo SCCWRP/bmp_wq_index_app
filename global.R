@@ -13,6 +13,10 @@ library(glue)
 library(stringr)
 library(readxl)
 
+# janitor is imported basically just for the round_half_up function
+# We "library" the entire package for the sake of being able to more easily read what the dependencies are for this shiny app
+library(janitor) 
+
 # Source helper functions and modules ------------------------------------------------------------------------------------------------------------------------
 source("R/utils.R")
 source("R/gauge.R")

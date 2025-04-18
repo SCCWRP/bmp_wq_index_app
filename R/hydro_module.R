@@ -160,14 +160,21 @@ hydro_server <- function(id) {
       ### Process hydrology data ----
       df <- df %>%
         filter(!is.na(precipitationdepth), !is.na(inflow), !is.na(outflow)) %>%
+        # round half up is a function from the library called "janitor"
+        # it is not from base R
+        # it is used to circumvent R's non-traditional rounding method (IEEE 754) AKA banker's rounding
+        # Round half up uses the traditional rounding method we learned in elementary school
+        # So if the next decimal place is a 5, it will round it up rather than going to the nearest even number
+        # Rounding to 2 decimal place convention here is following that of the performance index application that was given to LACPW
+        # rounding is performed after taking the ratio of inflow and outflow to the `designstormdepth` and `designvolume` respectively
         mutate(
           inflow = as.numeric(inflow),
           outflow = as.numeric(outflow),
           bypass = as.numeric(bypass),
           precipitationdepth = as.numeric(precipitationdepth),
           `Bypass occurred` = if_else(!(is.na(bypass) | bypass == 0), "Bypass", "No Bypass"),
-          `precip/design` = round2(precipitationdepth / input$designstormdepth, 2),
-          `volreduc/design` = round2((inflow - outflow) / input$designvolume, 2),
+          `precip/design` = (precipitationdepth / input$designstormdepth) %>% round_half_up(2),
+          `volreduc/design` = ((inflow - outflow) / input$designvolume) %>% round_half_up(2),
           quadrant = case_when(
             ((`volreduc/design` > (1 + UNCERTAINTY_BUFFER)) & (`precip/design` < 1)) | ((inflow - outflow) < 0) ~ "Check Data",
             (`volreduc/design` > (1 + UNCERTAINTY_BUFFER)) & (`precip/design` >= 1) ~ "Excess",
@@ -175,7 +182,10 @@ hydro_server <- function(id) {
             ((`volreduc/design` < (1 - UNCERTAINTY_BUFFER)) & (`precip/design` < 1)) & `Bypass occurred` == 'Bypass' ~ "Small Storm With Bypass",
             TRUE ~ "Success"
           ),
+          
+          # The bypass fraction is not rounded in the other application given to LACPW, so we will leave it alone here as well
           bypass_fraction = bypass / (bypass + inflow)
+          
         ) %>%
         mutate(quadrant = factor(quadrant, levels = c("Success", "Excess", "Check Data", "Failure", "Small Storm With Bypass")))
       df
