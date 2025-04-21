@@ -210,8 +210,6 @@ wq_server <- function(id) {
       plot_width <- ifelse(is.na(plot_limit), 1, plot_limit / 5)
       
       df <- processed_wqdata()
-      df <- df %>% mutate(`inf/thresh` = round(`inf/thresh`, 1),
-                          `eff/thresh` = round(`eff/thresh`, 1))
       
       # paste defaults to having a single space as a separator
       thresh_string <- paste('Threshold:', input$threshold, input$threshold_units)
