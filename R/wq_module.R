@@ -208,6 +208,21 @@ wq_server <- function(id) {
       
       ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant, shape = quadrant)) +
         geom_point(size = 5) +
+        geom_vline(xintercept = 1, linetype = "dashed", linewidth = 1) +
+        geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
+        geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 1) +
+        scale_shape_manual(values = perf_shapes) +
+        scale_color_manual(values = perf_colors) +
+        scale_x_continuous(
+          limits = c(0, plot_limit),
+          labels = format_axes(1),
+          breaks = scales::breaks_width(plot_width)
+        ) +
+        scale_y_continuous(
+          limits = c(0, plot_limit),
+          labels = format_axes(1),
+          breaks = scales::breaks_width(plot_width)
+        ) +
         labs(
           x = "Influent / Threshold",
           y = "Effluent / Threshold",
@@ -217,24 +232,11 @@ wq_server <- function(id) {
                          paste("Threshold:", input$threshold),
                          paste(input$pollutant_name, "- Threshold:", input$threshold))
         ) +
-        theme_minimal(base_size = 16) +
-        scale_color_manual(values = perf_colors) +
-        scale_shape_manual(values = perf_shapes) +
-        scale_x_continuous(
-          limits = c(0, plot_limit ),
-          labels = format_axes(1),
-          breaks = scales::breaks_width(plot_width)
-        ) +
-        scale_y_continuous(
-          limits = c(0, plot_limit ),
-          labels = format_axes(1),
-          breaks = scales::breaks_width(plot_width)
-        ) +
-        geom_hline(yintercept = 1, linetype = "dashed") +
-        geom_vline(xintercept = 1, linetype = "dashed") +
-        geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-        # coord_fixed() +
         theme(
+          panel.background = element_rect(fill = "white", colour = NA),
+          plot.background = element_rect(fill = "white", colour = NA),
+          panel.grid.major = element_line(color = "gray90", size = 0.5),
+          panel.grid.minor = element_line(color = "gray95", size = 0.3),
           text = element_text(size = 18),
           axis.title = element_text(size = 18),
           axis.text = element_text(size = 16),
@@ -243,11 +245,14 @@ wq_server <- function(id) {
           legend.position = 'bottom',
           legend.margin = margin(-5, 0, -5, 0),
           legend.box = 'horizontal',
-          legend.box.just = 'top',
-          panel.grid.minor = element_blank()
+          legend.box.just = 'top'
+        ) +
+        guides(
+          colour = guide_legend(override.aes = list(size = 5), nrow = 1, byrow = TRUE),
+          shape = guide_legend(override.aes = list(size = 5), nrow = 1, byrow = TRUE)
         )
-      
     })
+    
     
     ## Plotly-ify the above graph (I think mainly for the sake of having tooltips)
     ### NOTE it seems to mess up the dashed y = 1 and x = 1 lines that were originally intended to be on the plot

@@ -241,6 +241,10 @@ hydro_server <- function(id) {
           shape = "Performance"
         ) +
         theme(
+          panel.background = element_rect(fill = "white", colour = NA),
+          plot.background = element_rect(fill = "white", colour = NA),
+          panel.grid.major = element_line(color = "gray90", size = 0.5),
+          panel.grid.minor = element_line(color = "gray95", size = 0.3),
           text = element_text(size = 18),
           axis.title = element_text(size = 18),
           axis.text = element_text(size = 16),
@@ -249,8 +253,7 @@ hydro_server <- function(id) {
           legend.position = 'bottom',
           legend.margin = margin(-5, 0, -5, 0),
           legend.box = 'horizontal',
-          legend.box.just = 'top',
-          panel.grid.minor = element_blank()
+          legend.box.just = 'top'
         ) +
         guides(
           colour = guide_legend(override.aes = list(size = 5), nrow = 1, byrow = TRUE),
