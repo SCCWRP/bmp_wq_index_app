@@ -253,8 +253,8 @@ hydro_server <- function(id) {
           panel.grid.minor = element_blank()
         ) +
         guides(
-          colour = guide_legend(override.aes = list(size = 5), nrow = 3, byrow = TRUE),
-          shape = guide_legend(override.aes = list(size = 5), nrow = 3, byrow = TRUE)
+          colour = guide_legend(override.aes = list(size = 5), nrow = 1, byrow = TRUE),
+          shape = guide_legend(override.aes = list(size = 5), nrow = 1, byrow = TRUE)
         )
     })
     
@@ -459,6 +459,7 @@ hydro_server <- function(id) {
                            )
                        )
                      ),
+                     br(),
                      shinyWidgets::sliderTextInput(
                        ns("axisLimit"), "Set axis limits:",
                        choices = as.character(1:5),
