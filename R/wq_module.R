@@ -19,14 +19,21 @@ wq_ui <- function(id) {
         actionButton(ns("emc_link"), "Get help with EMCs"),
         fileInput(ns("wqfile"), "Upload CSV File", accept = c(".csv")),
         textInput(ns("pollutant_name"), "Pollutant Name/Unit (optional, e.g. Copper, µg/L)", value = ""),
-        numericInput(ns("threshold"), "Threshold (must be same unit as EMC data)", value = 1, min = 0, step = 0.1),
+        fluidRow(
+          column(6,
+                 numericInput(ns("threshold"), "Threshold", value = 1, min = 0, step = 0.1)
+          ),
+          column(6,
+                 selectInput(ns("threshold_units"), "Units", choices = c('mg/L','μg/L','cfu/100mL'))
+          )
+        ),
         verbatimTextOutput(ns("validation_message")),
         tags$img(src = "intepretation-slide.png", height = "100%", width = "100%"),
-        width = 6
+        width = 5
       ),
       mainPanel(
         uiOutput(ns("wq_ui_blocks")),
-        width = 6
+        width = 7
       )
     )
   )
@@ -206,6 +213,9 @@ wq_server <- function(id) {
       df <- df %>% mutate(`inf/thresh` = round(`inf/thresh`, 1),
                           `eff/thresh` = round(`eff/thresh`, 1))
       
+      # paste defaults to having a single space as a separator
+      thresh_string <- paste('Threshold:', input$threshold, input$threshold_units)
+      
       ggplot(df, aes(x = `inf/thresh`, y = `eff/thresh`, color = quadrant, shape = quadrant)) +
         geom_point(size = 5) +
         geom_vline(xintercept = 1, linetype = "dashed", linewidth = 1) +
@@ -228,13 +238,16 @@ wq_server <- function(id) {
           y = "Effluent / Threshold",
           colour = "Performance",
           shape = "Performance",
-          title = ifelse(input$pollutant_name == "",
-                         paste("Threshold:", input$threshold),
-                         paste(input$pollutant_name, "- Threshold:", input$threshold))
+          title = ifelse(
+            input$pollutant_name == "",
+            thresh_string,
+            paste(input$pollutant_name, thresh_string, sep = " - ")
+          )
         ) +
         theme(
           panel.background = element_rect(fill = "white", colour = NA),
           plot.background = element_rect(fill = "white", colour = NA),
+          plot.margin = margin(t = 20, r = 20, b = 20, l = 20),
           panel.grid.major = element_line(color = "gray90", size = 0.5),
           panel.grid.minor = element_line(color = "gray95", size = 0.3),
           text = element_text(size = 18),
@@ -418,7 +431,7 @@ wq_server <- function(id) {
                    downloadButton(ns("downloadPlot"), "Download Plot"),
                    downloadButton(ns("downloadProcessedWQData"), "Download Data"),
                    actionButton(ns("download_info"), "ⓘ Info", class = "btn-info"),
-                   
+                   br(), br(),
                    shinycssloaders::withSpinner(
                      div(style = "position: relative; width: 100%; padding-bottom: 75%;",
                          div(style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
@@ -426,6 +439,7 @@ wq_server <- function(id) {
                          )
                      )
                    ),
+                   br(),
                    shinyWidgets::sliderTextInput(
                      ns("axisLimit"), "Set axis limits:",
                      choices = as.character(1:5),
@@ -433,7 +447,6 @@ wq_server <- function(id) {
                      grid = TRUE
                    ),
                    htmlOutput(ns("wqPlotWarningMessage"))
-                   
             )
           ),
           fluidRow(

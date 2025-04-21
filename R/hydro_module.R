@@ -21,12 +21,12 @@ hydro_ui <- function(id) {
         numericInput(ns("designvolume"), "Design Volume", value = 26535, min = 0, step = 0.1),
         tags$img(src = "HydroIndexInterpretation.jpg", height = "100%", width = "100%"),
         
-        width = 6
+        width = 5
       ),
       
       mainPanel(
         uiOutput(ns("hydro_ui_blocks")),
-        width = 6
+        width = 7
       )
       
       
@@ -243,6 +243,7 @@ hydro_server <- function(id) {
         theme(
           panel.background = element_rect(fill = "white", colour = NA),
           plot.background = element_rect(fill = "white", colour = NA),
+          plot.margin = margin(t = 20, r = 20, b = 20, l = 20),
           panel.grid.major = element_line(color = "gray90", size = 0.5),
           panel.grid.minor = element_line(color = "gray95", size = 0.3),
           text = element_text(size = 18),
@@ -455,6 +456,7 @@ hydro_server <- function(id) {
                      downloadButton(ns("downloadProcessedHydroData"), "Download Data"),
                      actionButton(ns("download_info"), "ⓘ Info", class = "btn-info"),
                      #shinycssloaders::withSpinner(plotOutput(ns("hydroplot")))
+                     br(), br(),
                      shinycssloaders::withSpinner(
                        div(style = "position: relative; width: 100%; padding-bottom: 75%;",
                            div(style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
