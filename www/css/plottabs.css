@@ -14,3 +14,9 @@ input[type="range"],
 
 #Performance * { font-size: 18px; } 
 #validation_message { color: red; font-size: 25px; }
+
+.center-caption {
+  text-align: center;
+  font-style: italic; /* optional */
+  margin-top: 5px;    /* optional spacing */
+}

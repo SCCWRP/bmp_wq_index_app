@@ -205,10 +205,10 @@ welcome_tab <- tabItem(
                 p("The Water Quality Performance Index investigates paired influent-effluent pollutant flow-weighted event mean concentrations. 
                         The focus on event mean concentrations rather than mass loads yields critical information on whether a BMP successfully provides some 
                         treatment mechanism(s) to transform or sequester pollutants, such as filtration, sorption, sedimentation, degradation, or volatilization. 
-                        Runoff retention is not considered Water Quality Performance Index."),
+                        Runoff retention is not considered within the WQPI. It is assessed within the HPI – see below."),
                 p("Figure WQ1d contains categorical performance determinations of the paired event data based on their positions relative to the water 
                         quality threshold dividing lines depicted in Figures 1a-c. 
-                        The Water Quality BMP Performance Index identifies results among five descriptive categories as follows in order of their managerial 
+                        The WQPI identifies results among five descriptive categories as follows in order of their managerial 
                         preference (Fig. WQ2):"),
                 tags$ul(
                   tags$li("Success – The most preferred outcome, the runoff entering the BMP is “dirty” for the pollutant of interest yet treated effluent is at least as “clean” as the water quality threshold. The BMP provides meaningful pollutant removal mechanism(s)."),
@@ -217,7 +217,7 @@ welcome_tab <- tabItem(
                   tags$li("Insufficient – The runoff entering the BMP is “dirty” for the pollutant of interest. The BMP provides some mechanism(s) to treat the runoff, but additional treatment is needed to meet water quality objectives."),
                   tags$li("Failure – The BMP exports pollutants at concentrations greater than water quality threshold, potentially exacerbating downstream water quality conditions. Corrective action is required."),
                 ),
-                p("Data points falling on dividing lines are assigned to the more protective category. Data pairs categorized as Marginal or Excess may incorporate relatively more noise or uncertainty associated with detection of low concentrations. A BMP that exports pollutants (effluent concentration exceeds influent concentration) is considered a Failure for any influent concentration unless the water quality threshold is not exceeded (i.e., Marginal). Insufficient BMPs are considered less desirable than Marginal BMPs due to the continued elevated pollutant contribution to the receiving waters; resources should be allocated towards additional treatment before rehabilitating Marginal BMPs. "),
+                p("Data points falling on dividing lines are assigned to the more protective category. Data pairs categorized as Marginal or Excess may incorporate relatively more noise or uncertainty associated with detection of low concentrations. A BMP that exports pollutants (effluent concentration exceeds influent concentration) is considered a Failure for any influent concentration unless the water quality threshold is not exceeded (i.e., Marginal). Insufficient BMPs are considered less desirable than Marginal BMPs due to the continued elevated pollutant contribution to the receiving waters; resources should be allocated towards additional treatment before rehabilitating Marginal BMPs. After the data are normalized, the values are rounded to two decimal places."),
                 tags$figure(
                   style = "text-align: center;",
                   tags$img(src = "WQIndexOverviewPlot.jpg", style = "width:60%; height:60%;"),
@@ -298,7 +298,10 @@ welcome_tab <- tabItem(
                   tags$li(strong("Relative to Bypass Fraction (BF)"), " - When the BMP is full, some bypass may occur without cause for concern; e.g., for data points in the top right performance zone. Small storms should not produce bypass as the BMP is not expected to fill (the bottom left performance zone); however, a relatively large volume or duration of bypass measured relative to the inflow might indicate undersized or blocked inlets, poor grading, or additional flow from an unanticipated drainage area. Conversely, a small trickle or very short duration of bypass relative to the inflow is likely not a practical concern. The volume of bypass relative to the inflow volume is therefore an important consideration for small storms only. The ratio is defined herein as the bypass fraction (BF), and is determined as:")
                 ),
                 
-                tags$figure(tags$img(src = "BypassFractionSchematic.jpg", class = "centerImage", style="height:291px;width:346px;")), # exact dimensions of the jpg file
+                tags$figure(
+                  tags$img(src = "BypassFractionSchematic.jpg", class = "centerImage", style="height:291px;width:346px;"), # exact dimensions of the jpg file
+                  tags$figcaption(style = "text-align:center;", "Figure H2. Bypass fraction")
+                ), 
                 
                 tags$p(HTML("$$\\text{BF} = \\frac{V_{\\text{Bypass}}}{V_{\\text{Total}}} \\qquad \\text{Eq. 2}$$")),
                 
@@ -309,7 +312,12 @@ welcome_tab <- tabItem(
                   
                 ),
                 tags$p(
-                  "Data points falling on horizontal dividing lines are considered success, since the dividing lines are introduced to account for measurement uncertainty. Data points falling on vertical dividing lines below the horizontal success band are assigned to the more protective category, in this case it is assigned a failure. Data points falling on the vertical line above the horizontal success band are assigned to the excess category, since the implications for the check data category are specific and unique."),
+                  "Data points falling on horizontal dividing lines are considered success, since the dividing lines are introduced to account for measurement uncertainty. Data points falling on vertical dividing lines below the horizontal success band are assigned to the more protective category, in this case it is assigned a failure. Data points falling on the vertical line above the horizontal success band are assigned to the excess category, since the implications for the check data category are specific and unique. After the data are normalized, the values are rounded to two decimal places."),
+                
+                tags$figure(
+                  tags$img(src = "HydroIndexOverviewPlot.jpg", class = "centerImage", style="height:612px; width:797px;"), # exact dimensions of the jpg file
+                  tags$figcaption("Figure H3. Hydrology Performance Index Framework")
+                ), 
                 
                 h3("Hydrology Performance Index Scoring", id="HydroScoring"),
                 tags$p("The categorical outcome introduced above provides a useful determination of whether a BMP is capturing runoff as intended by design, or if corrective actions are needed. A key design criterion for the BMP Performance Index is the ability to capture long-term trends in the data, whether as temporal patterns or comparing amongst BMPs (an individual BMP or amongst a type of BMP). To this end, managers need a way to distill the narrative behavior of a suite of monitored BMPs into a single value that can be tracked over time or compared between BMP datasets. In other words, a method to collate storm-by-storm categorical outcomes into a single descriptor of performance is of interest."),
@@ -374,11 +382,11 @@ welcome_tab <- tabItem(
         circumstances such as back-to-back storms or maintenance deficiency. Corrective action is needed for
         Failures."),
                 tags$figure(
-                  tags$img(src = "Fig4HYDROsinglecategoryoutcomes.JPG", class = "centerImage"),
+                  tags$img(src = "H4HydroManagementImplications.png", class = "centerImage", style = "height:400px; width:400px;"),
                   tags$figcaption("Figure H4. Management implications for single-category outcomes.")
                 ),
                 
-                tags$p("Figure H4 illustrates the transition points and how the HPI contributes to decision making for stormwater managers. Additional lines of inquiry are included for technical designers and planners to further investigate the broad management action zones. The HPI score reflects the weighted average across all the BMP site-events available in the dataset. Low scores are associated with the best / most preferred outcomes. Where at least half of the data fall into a single category, the suggested management action reflects the implication of that category (Figure H3)."),
+                tags$p("Figure H5 illustrates the transition points and how the HPI contributes to decision making for stormwater managers. Additional lines of inquiry are included for technical designers and planners to further investigate the broad management action zones. The HPI score reflects the weighted average across all the BMP site-events available in the dataset. Low scores are associated with the best / most preferred outcomes. Where at least half of the data fall into a single category, the suggested management action reflects the implication of that category (Figure H4)."),
                 tags$figure(
                   style = "text-align: center;",
                   tags$img(src = "HydroIndexInterpretation.jpg", style = "width:70%; height:70%;"),
