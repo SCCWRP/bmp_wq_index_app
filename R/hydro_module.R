@@ -440,64 +440,71 @@ hydro_server <- function(id) {
     # If no file is uploaded, it will display the example JPG that explains the plot and how to interpret it
     output$hydro_ui_blocks <- renderUI({
       
+      # This chunk needs to be executed before the "req" so that the placeholder image can display if no data are uploaded
+      if (is.null(input$hydrofile)) {
+        # it is necessary to explicitly return, otherwise the code will continue executing
+        return(tags$img(src = "HydroIndexOverviewPlot.jpg", height = "95%", width = "95%"))
+      } 
+      
       # If no valid data found, prevent rendering of this entire set of UI components.
+      # It almost feels like we shouldn't need this line due to the above line, but it's better to be safe
+      # I think there is a reason why this line was added, but I can't exactly remember why
+      # If you are taking over this project, I recommend leaving this line below
       req(processed_hydrodata())
       
-      if (is.null(input$hydrofile)) {
-        tags$img(src = "HydroIndexPlot.jpg", height = "95%", width = "95%")
-      } else {
-        tagList(
-          fluidRow(
-            conditionalPanel(
-              condition = paste0("input.", ns("hydrofile"), " !== null"),
-              column(12,
-                     h4("Performance Index Plot"),
-                     downloadButton(ns("downloadHydroPlot"), "Download Plot"),
-                     downloadButton(ns("downloadProcessedHydroData"), "Download Data"),
-                     actionButton(ns("download_info"), "ⓘ Info", class = "btn-info"),
-                     #shinycssloaders::withSpinner(plotOutput(ns("hydroplot")))
-                     br(), br(),
-                     shinycssloaders::withSpinner(
-                       div(style = "position: relative; width: 100%; padding-bottom: 75%;",
-                           div(style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
-                               plotOutput(ns("hydroplot"), width = "100%", height = "100%")
-                           )
-                       )
-                     ),
-                     br(),
-                     shinyWidgets::sliderTextInput(
-                       ns("axisLimit"), "Set axis limits:",
-                       choices = as.character(1:5),
-                       selected = as.character(5),
-                       grid = TRUE
-                     ),
-                     htmlOutput(ns("hydroPlotWarningMessage"))
-              )
+      # The UI output with all their plots and data analysis
+      tagList(
+        fluidRow(
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
+                   h4("Performance Index Plot"),
+                   downloadButton(ns("downloadHydroPlot"), "Download Plot"),
+                   downloadButton(ns("downloadProcessedHydroData"), "Download Data"),
+                   actionButton(ns("download_info"), "ⓘ Info", class = "btn-info"),
+                   #shinycssloaders::withSpinner(plotOutput(ns("hydroplot")))
+                   br(), br(),
+                   shinycssloaders::withSpinner(
+                     div(style = "position: relative; width: 100%; padding-bottom: 75%;",
+                         div(style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
+                             plotOutput(ns("hydroplot"), width = "100%", height = "100%")
+                         )
+                     )
+                   ),
+                   br(),
+                   shinyWidgets::sliderTextInput(
+                     ns("axisLimit"), "Set axis limits:",
+                     choices = as.character(1:5),
+                     selected = as.character(5),
+                     grid = TRUE
+                   ),
+                   htmlOutput(ns("hydroPlotWarningMessage"))
             )
-          ),
-          fluidRow(
-            conditionalPanel(
-              condition = paste0("input.", ns("hydrofile"), " !== null"),
-              column(12,
-                     h4("Performance Index Score"),
-                     h5("The graphic is not available for download"),
-                     div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
-                         plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
-              )
+          )
+        ),
+        fluidRow(
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
+                   h4("Performance Index Score"),
+                   h5("The graphic is not available for download"),
+                   div(style = "display: flex; justify-content: center; padding-top: 10px; padding-bottom: 20px;",
+                       plotly::plotlyOutput(ns("hydro.score.gauge"), height = "320px"))
             )
-          ),
-          fluidRow(
-            conditionalPanel(
-              condition = paste0("input.", ns("hydrofile"), " !== null"),
-              column(12,
-                     h4("Performance Index Summary Table"),
-                     downloadButton(ns("downloadHydroTable"), "Download Summary Table"),
-                     DT::dataTableOutput(ns("hydro.gauge.table"))
-              )
+          )
+        ),
+        fluidRow(
+          conditionalPanel(
+            condition = paste0("input.", ns("hydrofile"), " !== null"),
+            column(12,
+                   h4("Performance Index Summary Table"),
+                   downloadButton(ns("downloadHydroTable"), "Download Summary Table"),
+                   DT::dataTableOutput(ns("hydro.gauge.table"))
             )
           )
         )
-      }
+      )
+        
     })
     
   })
