@@ -120,7 +120,9 @@ welcome_tab <- tabItem(
     includeCSS("www/css/welcome.css")
   ),
   h1("BMP Water Quality Performance Index Calculator", align = "center"),
-  h2(HTML("This application was developed to implement the analysis Fassman-Beck et al. (2025) – A Data-Driven Index for Evaluating BMP Water Quality Performance <a href='https://www.sciencedirect.com/science/article/abs/pii/S0043135425006785' target='_blank'>Link to journal article pre-print</a>"), align = "center"),
+  div(style = "margin: 10px auto; max-width: 1200px; text-align: left; padding: 20px; background-color: #f8f9fa; border-radius: 4px; border-left: 2px solid #007bff;",
+      h3(HTML("Fassman-Beck, E.A., Tiernan, E.D., Cheng, K.L., Schiff K.C. (2025)<br>A data-driven index for evaluating BMP water quality performance<br><i>Water Research</i>, 282(2025) 123769<br><a href='https://doi.org/10.1016/j.watres.2025.123769' target='_blank'>https://doi.org/10.1016/j.watres.2025.123769</a>"), style = "margin: 0;")
+  ),
   br(),
   div(
     class = 'main-welcome-div',
