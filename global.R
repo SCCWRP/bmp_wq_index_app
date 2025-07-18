@@ -323,7 +323,7 @@ welcome_tab <- tabItem(
                 
                 tags$figure(
                   tags$img(src = "HydroIndexOverviewPlot.jpg", class = "centerImage", style="height:60%; width:60%;"), # exact dimensions of the jpg file
-                  tags$figcaption("Figure H3. Hydrology Performance Index Framework")
+                  tags$figcaption(style = "text-align: center;", "Figure H3. Hydrology Performance Index Framework")
                 ), 
                 
                 h3("Hydrology Performance Index Scoring", id="HydroScoring"),
@@ -389,10 +389,13 @@ welcome_tab <- tabItem(
         circumstances such as back-to-back storms or maintenance deficiency. Corrective action is needed for
         Failures."),
                 tags$figure(
+                  # There is a uiOutput here for the table in app.R
+                  # The purpose was to make the table into code rather than a static image
+                  # The resolution looks much cleaner if it is a table rather than a static image
                   div(style = "display: flex; justify-content: center; align-items: center; margin: 20px 0; width: 100%;",
                       uiOutput("hydroManagementTable")
                   ),
-                  tags$figcaption("Figure H4. Management implications for single-category outcomes.")
+                  tags$figcaption(style = "text-align: center;", "Figure H4. Management implications for single-category outcomes.")
                 ),
                 
                 tags$p("Figure H5 illustrates the transition points and how the HPI contributes to decision making for stormwater managers. Additional lines of inquiry are included for technical designers and planners to further investigate the broad management action zones. The HPI score reflects the weighted average across all the BMP site-events available in the dataset. Low scores are associated with the best / most preferred outcomes. Where at least half of the data fall into a single category, the suggested management action reflects the implication of that category (Figure H4)."),
