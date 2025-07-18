@@ -288,7 +288,7 @@ welcome_tab <- tabItem(
                 
                 
                 tags$figure(
-                  tags$img(src = "FigureH1.png", class = "centerImage", style="height:600px;width:800px"),
+                  tags$img(src = "FigureH1.png", class = "centerImage", style="height:80%;width:80%;"),
                   tags$figcaption(
                     "Figure H1. BMP Hydrology Performance Index conceptual design illustrated using data from selected bioretention BMPs in the ",
                     a(href = "https://bmpdatabase.org/", target = "_blank", "International Stormwater BMP Database", style = "color: #0000EE;", .noWS = "outside"), ": (a) Should the BMP capture all runoff for the monitored storm, 
