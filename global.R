@@ -175,7 +175,6 @@ welcome_tab <- tabItem(
               ),
               ## main overview text ----
               tags$div(
-               tags$p(h3(HTML("Here is a link to a <a href='https://forms.office.com/Pages/ResponsePage.aspx?id=PfKopOEaHEuZAuqhUwKBkLfF7RbFiCdKlqnmjECrBFxUM1BYMDlSQ0ZOQTY3NkNQVjZQUDZIRjZQUC4u'>feedback form</a>"))),
                tags$p(h3(HTML("Here is a link to the <a href='https://github.com/SCCWRP/bmp_wq_index_app/'>Github repository</a>")))
               ),
               tags$div(
