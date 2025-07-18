@@ -119,7 +119,7 @@ welcome_tab <- tabItem(
   tags$head(
     includeCSS("www/css/welcome.css")
   ),
-  h1("BMP Water Quality Performance Index Calculator", align = "center"),
+  h1("BMP Performance Index Calculator", align = "center"),
   div(style = "margin: 10px auto; max-width: 1200px; text-align: left; padding: 20px; background-color: #f8f9fa; border-radius: 4px; border-left: 2px solid #007bff; cursor: pointer;",
     tags$a(href = "https://doi.org/10.1016/j.watres.2025.123769", target = "_blank", style = "text-decoration: none; color: inherit; display: block;",
         h3(HTML("Fassman-Beck, E.A., Tiernan, E.D., Cheng, K.L., Schiff K.C. (2025)<br>A data-driven index for evaluating BMP water quality performance<br><i>Water Research</i>, 282(2025) 123769<br>https://doi.org/10.1016/j.watres.2025.123769"), style = "margin: 0;")
