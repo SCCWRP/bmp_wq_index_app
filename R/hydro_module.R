@@ -10,7 +10,7 @@ hydro_ui <- function(id) {
     tags$head(
       includeCSS("www/css/plottabs.css")
     ),
-    div(style = "margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #007bff; border-radius: 4px;",
+    div(style = "margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-left: 2px solid #007bff; border-radius: 4px;",
         p(style = "margin: 0; font-style: italic; color: #6c757d;",
           "A manuscript with more detailed information is forthcoming.")
     ),

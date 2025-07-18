@@ -10,6 +10,21 @@ wq_ui <- function(id) {
     tags$head(
       includeCSS("www/css/plottabs.css")
     ),
+    div(style = "margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-left: 2px solid #007bff; border-radius: 4px;",
+        p(
+          style = "margin: 0; font-style: italic; color: #6c757d;",
+          HTML('
+            <p>A detailed description, including example applications is described in the open source publication:</p>
+            <a href="https://doi.org/10.1016/j.watres.2025.123769" style = "text-decoration: none; display: block;" target="_blank">
+                <p>
+                    Fassman-Beck, E.A., Tiernan, E.D., Cheng, K.L., Schiff K.C. (2025)<br>
+                    A data-driven index for evaluating BMP water quality performance<br>
+                    <i>Water Research</i>, 282(2025) 123769<br>
+                    https://doi.org/10.1016/j.watres.2025.123769
+                </p>
+            </a>
+        '))
+    ),
     sidebarLayout(
       sidebarPanel(
         useShinyjs(),
