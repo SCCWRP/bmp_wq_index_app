@@ -389,7 +389,9 @@ welcome_tab <- tabItem(
         circumstances such as back-to-back storms or maintenance deficiency. Corrective action is needed for
         Failures."),
                 tags$figure(
-                  tags$img(src = "H4HydroManagementImplications.png", class = "centerImage", style = "height:400px; width:400px;"),
+                  div(style = "display: flex; justify-content: center; align-items: center; margin: 20px 0; width: 100%;",
+                      uiOutput("hydroManagementTable")
+                  ),
                   tags$figcaption("Figure H4. Management implications for single-category outcomes.")
                 ),
                 
