@@ -322,7 +322,7 @@ welcome_tab <- tabItem(
                   "Data points falling on horizontal dividing lines are considered success, since the dividing lines are introduced to account for measurement uncertainty. Data points falling on vertical dividing lines below the horizontal success band are assigned to the more protective category, in this case it is assigned a failure. Data points falling on the vertical line above the horizontal success band are assigned to the excess category, since the implications for the check data category are specific and unique. After the data are normalized, the values are rounded to two decimal places."),
                 
                 tags$figure(
-                  tags$img(src = "HydroIndexOverviewPlot.jpg", class = "centerImage", style="height:612px; width:797px;"), # exact dimensions of the jpg file
+                  tags$img(src = "HydroIndexOverviewPlot.jpg", class = "centerImage", style="height:60%; width:60%;"), # exact dimensions of the jpg file
                   tags$figcaption("Figure H3. Hydrology Performance Index Framework")
                 ), 
                 
