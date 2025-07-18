@@ -12,7 +12,7 @@ hydro_ui <- function(id) {
     ),
     div(style = "margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-left: 2px solid #007bff; border-radius: 4px;",
         p(style = "margin: 0; font-style: italic; color: #6c757d;",
-          "A manuscript with more detailed information is forthcoming.")
+          "The hydrology index calculator is subject to SCCWRP CTAG review. A manuscript with more detailed information is forthcoming.")
     ),
     sidebarLayout(
       sidebarPanel(
