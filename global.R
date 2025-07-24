@@ -351,11 +351,11 @@ welcome_tab <- tabItem(
                   tags$li(HTML("Failure (<i>w<sub>failure</sub></i>) = 10"))
                 ),
                 
-                tags$p('Data points in the Relative to BF performance zone are assigned a variable weighting score wBF derived
+                tags$p(HTML('Data points in the Relative to BF performance zone are assigned a variable weighting score $w$<sub>BF</sub> derived
            from the magnitude of the BF (Eq. 4). The magnitude of BF is only relevant to weight performance in the
            bottom left performance zone, where "on paper", a BMP should not experience bypass or overflow. The
            weight of the data points in the Relative to BF zone is equal to the average BF value for the individual storm
-           events, ', tags$em('n'), ' within that zone, scaled up by a factor of 10:'),
+           events, '), tags$em('n'), ' within that zone, scaled up by a factor of 10:'),
                 
                 # Render the equation using HTML and perhaps MathJax (or Katex)
                 tags$p(HTML("$$w_{BF} = 10 \\times \\frac{\\sum_{i=1}^{n} BF_i}{n} \\qquad \\text{Eq. 4}$$")), # MathJax version
