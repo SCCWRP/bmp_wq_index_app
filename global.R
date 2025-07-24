@@ -360,14 +360,16 @@ welcome_tab <- tabItem(
                 # Render the equation using HTML and perhaps MathJax (or Katex)
                 tags$p(HTML("$$w_{BF} = 10 \\times \\frac{\\sum_{i=1}^{n} BF_i}{n} \\qquad \\text{Eq. 4}$$")), # MathJax version
                 
-                tags$p(HTML("The Success and Failure category weights for individual events are maintained within the $w$<sub>BF</sub> calculation
-           (Eq. 4). If there is no measured bypass for a small storm, BF = 0 by Eq. 4 and $w$<sub>BF</sub> = 0, which is equivalent
-           to the Success weight. If/where the entire flow volume is measured as bypass (i.e. no runoff gets into the
-           BMP), BF = 1 and $w$<sub>BF</sub> = 10, which is equivalent to a Failure. The factor of 10 in Eq. 5 is a scaling factor to
-           render the BF relevant to the Success, Excess, Check Data, and Failure category weights. For example, a BF
-           of 3% is arguably a negligible proportion of flow. It would result in $w$<sub>BF</sub> = 0.3, which is only marginally worse
-           performance than Success. However, repeatedly measuring BF > 50% and the resultant $w$<sub>BF</sub> = 5.0 would
-           likely indicate that the BMP far from meeting performance expectations during small storms.")),
+                # Below, new paragraph, as of July 24, 2025
+                tags$p(HTML("Where $w$<sub>BF</sub> is the weighting factor for small storms that experience bypass, BF is the fraction of the total inflow that bypasses the BMP and is calculated by Eq. 2, 
+                            and n is the number of small storms that produce bypass. 
+                            The factor of 10 in Eq. 4 is a scaling factor to render the BF relevant to the Success, Excess, Check Data, and Failure category weights. 
+                            For example, a BF of 3% (0.03) is arguably a negligible proportion of flow. It would result in $w$<sub>BF</sub> = 0.3, which is only marginally worse performance than Success. 
+                            However, repeatedly measuring BF > 50% and the resultant $w$<sub>BF</sub> = 5.0 would likely indicate that the BMP far from meeting performance expectations during small storms. 
+                            The Success and Failure category weights for individual events are maintained within the $w$<sub>BF</sub> calculation. 
+                            If there is no measured bypass for a small storm, BF = 0 by Eq. 4 and $w$<sub>BF</sub> = 0, which is equivalent to the Success weight. 
+                            If/where the entire flow volume is measured as bypass (i.e. no runoff gets into the BMP), BF = 1 and $w$<sub>BF</sub> = 10, which is equivalent to a Failure.")),
+                
                 
                 HTML("<p>
               This weighting scheme (i.e., set of w<sub>i</sub> weighting factors in Eq. 3) reflects the underlying preference of
