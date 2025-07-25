@@ -367,7 +367,18 @@ hydro_server <- function(id) {
     
     # Simply call that above function and render it
     output$hydro.gauge.table <- DT::renderDataTable({
-      hydrotable()
+      DT::datatable(
+        hydrotable() %>%
+          mutate(
+            `Bypass Fraction Avg` = if_else(Performance == 'Small Storm With Bypass', bypass_fraction_average, NA_real_)
+          ) %>%
+          select(-bypass_fraction_average),
+        options = list(
+          columnDefs = list(
+            list(className = 'dt-left', targets = "_all")
+          )
+        )
+      )
     })
     
     
